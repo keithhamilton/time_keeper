@@ -5,6 +5,8 @@ import time
 import requests
 import RPi.GPIO as GPIO
 
+JOB_ENDPOINT = 'http://0.0.0.0:4000/jobs/switch'
+
 
 if __name__ == '__main__':
 
@@ -17,6 +19,6 @@ if __name__ == '__main__':
     while True:
         for pin in PINS:
             if not GPIO.input(pin):
-                requests.post('http://0.0.0.0:4000/jobhours/switch', data = {'job_switch_id': pin})
+                requests.post(JOB_ENDPOINT, data = {'job_switch_id': pin})
 
         time.sleep(0.3)

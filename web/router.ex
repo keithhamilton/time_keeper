@@ -17,6 +17,7 @@ defmodule TimeKeeper.Router do
     pipe_through :browser # Use the default browser stack
 
     get "/", PageController, :index
+    post "/jobs/switch", JobController, :switch
 
     resources "/jobs", JobController
   end

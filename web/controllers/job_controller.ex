@@ -63,9 +63,11 @@ defmodule TimeKeeper.JobController do
     |> redirect(to: job_path(conn, :index))
   end
 
-  def switch(_, %{"new_job_id" => new_id}) do
+  def switch(conn, %{"new_job_id" => new_id}) do
 
     IO.puts new_id
+    conn
+    |> put_flash(:info, "Received new job request")
 
   end
 

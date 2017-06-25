@@ -65,7 +65,9 @@ defmodule TimeKeeper.JobController do
 
   def switch(conn, %{"new_job_id" => new_id}) do
 
-    IO.puts new_id
+    button = Repo.get!(Button, new_id)
+    IO.puts button.job.job_code
+
     conn
     |> put_status(:ok)
     |> send_resp(200, "All good")

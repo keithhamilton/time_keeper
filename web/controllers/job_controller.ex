@@ -63,7 +63,7 @@ defmodule TimeKeeper.JobController do
     |> redirect(to: job_path(conn, :index))
   end
 
-  def shift(_, %{"new_job_id" => new_id}) do
+  def switch(_, %{"new_job_id" => new_id}) do
 
     IO.puts new_id
 

@@ -2,6 +2,8 @@ defmodule TimeKeeper.JobController do
   use TimeKeeper.Web, :controller
 
   alias TimeKeeper.Job
+  alias TimeKeeper.Button
+  alias TimeKeeper.Work
 
   def index(conn, _params) do
     jobs = Repo.all(Job)
@@ -65,8 +67,38 @@ defmodule TimeKeeper.JobController do
 
   def switch(conn, %{"new_job_id" => new_id}) do
 
-    button = Repo.get!(Button, new_id)
-    IO.puts button.job.job_code
+    [button|_] = Repo.all(from b in Button,
+      where: b.serial_id == ^new_id,
+      select: b)
+    job = Repo.get!(Job, button.job_id)
+
+    current_job = Repo.first(from w in Work, where: not complete)
+
+    if current_job != nil do
+      changeset = Work.changeset(current_job, %{complete: true})
+      case Repo.update(changeset) do
+        {:ok, updated} ->
+          IO.puts "Work complete on #{job.job_code}"
+        {:error, changeset} ->
+          conn
+          |> put_status(:error)
+          |> send_resp(500, "Error closing out previous work")
+      end
+    end
+
+    work = Work.changeset(%Work{complete: false, job: job}, {})
+
+    case Repo.update(work) do
+      {:ok, work} ->
+        IO.puts "Work begun on #{job.job_code}"
+      {:error, changeset} ->
+        conn
+        |> put_status(:error)
+        |> send_resp(500, "Error closing out previous work")
+    end
+
+    IO.puts job.job_name
+    IO.puts job.job_code
 
     conn
     |> put_status(:ok)

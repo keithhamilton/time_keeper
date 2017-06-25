@@ -62,4 +62,11 @@ defmodule TimeKeeper.JobController do
     |> put_flash(:info, "Job deleted successfully.")
     |> redirect(to: job_path(conn, :index))
   end
+
+  def shift(_, %{"new_job_id" => new_id}) do
+
+    IO.puts new_id
+
+  end
+
 end

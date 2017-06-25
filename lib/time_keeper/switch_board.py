@@ -17,7 +17,7 @@ if __name__ == '__main__':
         GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
     while True:
-        for pin in PINS:
+        for pin in pins:
             if not GPIO.input(pin):
                 requests.post(JOB_ENDPOINT, data = {'job_switch_id': pin})
 

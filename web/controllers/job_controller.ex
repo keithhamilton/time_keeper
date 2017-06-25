@@ -67,7 +67,8 @@ defmodule TimeKeeper.JobController do
 
     IO.puts new_id
     conn
-    |> put_flash(:info, "Received new job request")
+    |> put_status(:ok)
+    |> send_resp(200, "All good")
 
   end
 

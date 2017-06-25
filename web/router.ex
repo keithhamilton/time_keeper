@@ -20,6 +20,7 @@ defmodule TimeKeeper.Router do
     post "/jobs/switch", JobController, :switch
 
     resources "/jobs", JobController
+    resources "/buttons", ButtonController
   end
 
   # Other scopes may use custom stacks.

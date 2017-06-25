@@ -1,0 +1,18 @@
+<h2>Show button</h2>
+
+<ul>
+
+  <li>
+    <strong>Serial:</strong>
+    <%= @button.serial_id %>
+  </li>
+
+  <li>
+    <strong>Job:</strong>
+    <%= @job_name %>
+  </li>
+
+</ul>
+
+<%= link "Edit", to: button_path(@conn, :edit, @button) %>
+<%= link "Back", to: button_path(@conn, :index) %>

@@ -1,0 +1,28 @@
+<h2>Listing buttons</h2>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Serial</th>
+      <th>Job</th>
+
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+<%= for button <- @buttons do %>
+    <tr>
+      <td><%= button.serial_id %></td>
+      <td><%= button.job.job_name %></td>
+
+      <td class="text-right">
+        <%= link "Show", to: button_path(@conn, :show, button), class: "btn btn-default btn-xs" %>
+        <%= link "Edit", to: button_path(@conn, :edit, button), class: "btn btn-default btn-xs" %>
+        <%= link "Delete", to: button_path(@conn, :delete, button), method: :delete, data: [confirm: "Are you sure?"], class: "btn btn-danger btn-xs" %>
+      </td>
+    </tr>
+<% end %>
+  </tbody>
+</table>
+
+<%= link "New button", to: button_path(@conn, :new) %>

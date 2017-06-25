@@ -1,0 +1,7 @@
+<h2>New button</h2>
+
+<%= render "form.html", changeset: @changeset,
+                        action: button_path(@conn, :create),
+                        jobcodes: @jobcodes %>
+
+<%= link "Back", to: button_path(@conn, :index) %>

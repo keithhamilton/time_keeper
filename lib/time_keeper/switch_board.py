@@ -19,6 +19,6 @@ if __name__ == '__main__':
     while True:
         for pin in pins:
             if not GPIO.input(pin):
-                requests.post(JOB_ENDPOINT, data = {'job_switch_id': pin})
+                requests.post(JOB_ENDPOINT, data = {'new_job_id': pin})
 
         time.sleep(0.3)

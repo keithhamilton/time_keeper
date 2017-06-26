@@ -65,45 +65,12 @@ defmodule TimeKeeper.JobController do
     |> redirect(to: job_path(conn, :index))
   end
 
-  def switch(conn, %{"new_job_id" => new_id}) do
-
-    [button|_] = Repo.all(from b in Button,
-      where: b.serial_id == ^new_id,
-      select: b)
-    job = Repo.get!(Job, button.job_id)
-
-    current_job = Repo.first(from w in Work, where: not complete)
-
-    if current_job != nil do
-      changeset = Work.changeset(current_job, %{complete: true})
-      case Repo.update(changeset) do
-        {:ok, updated} ->
-          IO.puts "Work complete on #{job.job_code}"
-        {:error, changeset} ->
-          conn
-          |> put_status(:error)
-          |> send_resp(500, "Error closing out previous work")
-      end
-    end
-
-    work = Work.changeset(%Work{complete: false, job: job}, {})
-
-    case Repo.update(work) do
-      {:ok, work} ->
-        IO.puts "Work begun on #{job.job_code}"
-      {:error, changeset} ->
-        conn
-        |> put_status(:error)
-        |> send_resp(500, "Error closing out previous work")
-    end
-
-    IO.puts job.job_name
-    IO.puts job.job_code
-
-    conn
-    |> put_status(:ok)
-    |> send_resp(200, "All good")
-
-  end
+  # def job_work(conn, %{"start_date" => start_date, "end_date" => end_date}) do
+  #   all_work = Repo.all(from w in Work,
+  #     where: w.inserted_at >= start_date and w.inserted_at <= end_date,
+  #     select: w)
+  #
+  #
+  # end
 
 end

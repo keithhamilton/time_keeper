@@ -17,10 +17,13 @@ defmodule TimeKeeper.Router do
     pipe_through :browser # Use the default browser stack
 
     get "/", PageController, :index
-    post "/jobs/switch", JobController, :switch
+    post "/work/switch", WorkController, :switch
+    get "/work/:start_date/:end_date", JobController, :job_work
 
     resources "/jobs", JobController
     resources "/buttons", ButtonController
+    resources "/work", WorkController
+
   end
 
   # Other scopes may use custom stacks.

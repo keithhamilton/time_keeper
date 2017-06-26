@@ -1,0 +1,18 @@
+<h2>Show work</h2>
+
+<ul>
+
+  <li>
+    <strong>Complete:</strong>
+    <%= @work.complete %>
+  </li>
+
+  <li>
+    <strong>Job:</strong>
+    <%= @work.job_id %>
+  </li>
+
+</ul>
+
+<%= link "Edit", to: work_path(@conn, :edit, @work) %>
+<%= link "Back", to: work_path(@conn, :index) %>

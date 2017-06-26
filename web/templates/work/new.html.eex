@@ -1,0 +1,6 @@
+<h2>New work</h2>
+
+<%= render "form.html", changeset: @changeset,
+                        action: work_path(@conn, :create) %>
+
+<%= link "Back", to: work_path(@conn, :index) %>

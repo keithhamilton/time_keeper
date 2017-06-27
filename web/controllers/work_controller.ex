@@ -83,26 +83,33 @@ defmodule TimeKeeper.WorkController do
     date_string = Date.to_string(first_entry.date)
 
     if Map.has_key?(aggregate, date_string) do
+      IO.puts "aggregate for date established"
       date_hash = Map.get(aggregate, date_string)
 
       if Map.has_key?(date_hash, first_entry.job_code) do
+        IO.puts "aggregate for job_code established"
         job_hash = Map.get(date_hash, first_entry.job_code)
         total_time = Map.get(job_hash, "time_total") + first_entry.time_spent
         Map.put(job_hash, "time_total", total_time)
         Map.put(date_hash, first_entry.job_code, job_hash)
         Map.put(aggregate, date_string, date_hash)
+        aggregate_time(time_entries, aggregate)
       else
+        IO.puts "no aggregate for date and job_code yet"
         job_hash = %{"time_total" => first_entry.time_spent}
         Map.put(date_hash, first_entry.job_code, job_hash)
         Map.put(aggregate, date_string, date_hash)
+        aggregate_time(time_entries, aggregate)
       end
     else
+      IO.puts "no aggregate for date yet"
       job_hash = %{"time_total" => first_entry.time_spent}
       date_hash = %{date_string => %{first_entry.job_code => job_hash}}
       Map.put(aggregate, date_string, date_hash)
+      aggregate_time(time_entries, aggregate)
     end
 
-    aggregate_time(time_entries, aggregate)
+  #aggregate_time(time_entries, aggregate)
   end
 
   def aggregate_time([], aggregate) do

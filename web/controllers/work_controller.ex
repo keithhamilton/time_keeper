@@ -79,27 +79,27 @@ defmodule TimeKeeper.WorkController do
 
   end
 
-  def aggregate_time([first_entry|time_entries], aggregate \\ %{}) do
-    # if a key for the date associated with a time entry exists
-    if Map.has_key?(aggregate, Date.to_string(first_entry.date)) do
-      date_string = Date.to_string(first_entry.date)
+  def aggregate_time([first_entry|time_entries], aggregate) do
+    date_string = Date.to_string(first_entry.date)
+
+    if Map.has_key?(aggregate, date_string) do
       date_hash = Map.get(aggregate, date_string)
-      # if a key for the job_code exists for that day
-      if Map.has_key?(date_hash, Map.get(date_hash, first_entry.job_code)) do
+
+      if Map.has_key?(date_hash, first_entry.job_code) do
         job_hash = Map.get(date_hash, first_entry.job_code)
-        current_time = Map.get(job_hash, "time_total")
-        Map.put(job_hash, "time_total", current_time + first_entry.time_spent)
-        # update the value of the hours spent
+        total_time = Map.get(job_hash, "time_total") + first_entry.time_spent
+        Map.put(job_hash, "time_total", total_time)
         Map.put(date_hash, first_entry.job_code, job_hash)
         Map.put(aggregate, date_string, date_hash)
       else
         job_hash = %{"time_total" => first_entry.time_spent}
         Map.put(date_hash, first_entry.job_code, job_hash)
+        Map.put(aggregate, date_string, date_hash)
       end
     else
       job_hash = %{"time_total" => first_entry.time_spent}
-      date_hash = %{Date.to_string(first_entry.date) => %{first_entry.job_code => job_hash}}
-      Map.put(aggregate, date_hash)
+      date_hash = %{date_string => %{first_entry.job_code => job_hash}}
+      Map.put(aggregate, date_string, date_hash)
     end
 
     aggregate_time(time_entries, aggregate)
@@ -108,6 +108,10 @@ defmodule TimeKeeper.WorkController do
   def aggregate_time([], aggregate) do
     IO.puts aggregate
     aggregate
+  end
+
+  def aggregate_time([first_entry|time_entries]) do
+    aggregate_time([first_entry|time_entries], %{})
   end
 
   def job_work(conn, %{"start_date" => start_date, "end_date" => end_date}) do

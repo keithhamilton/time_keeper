@@ -120,7 +120,7 @@ defmodule TimeKeeper.WorkController do
 
     IO.puts "Found #{length(all_work)} jobs!"
 
-    work_time = Enum.map(fn w -> calc_time_spent(w) end)
+    work_time = Enum.map(all_work, fn w -> calc_time_spent(w) end)
       |> aggregate_time
 
     conn

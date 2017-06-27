@@ -5,110 +5,6 @@ defmodule TimeKeeper.WorkController do
   alias TimeKeeper.Job
   alias TimeKeeper.Work
 
-  def open(conn, button_pin) do
-    [button|_] = Repo.all(from b in Button,
-      where: b.serial_id == ^button_pin,
-      select: b)
-
-    job = Repo.get!(Job, button.job_id)
-    work = Work.changeset(%Work{job: job}, %{})
-
-    case Repo.insert(work) do
-      {:ok, _} ->
-        IO.puts "Work begun on #{job.job_code}"
-      {:error, _} ->
-        conn
-        |> put_status(:error)
-        |> send_resp(500, "Error beginning new work")
-    end
-  end
-
-  def close(conn, work_object) do
-    [current_job|_] = Repo.all(from j in Job, where: j.id == ^work_object.job_id)
-    changeset = Work.changeset(work_object, %{job: current_job, complete: true})
-
-    case Repo.update(changeset) do
-      {:ok, _} ->
-        IO.puts "Work complete on #{current_job.job_code}"
-      {:error, _} ->
-        conn
-        |> put_status(:error)
-        |> send_resp(500, "Error closing out previous work")
-    end
-  end
-
-  def switch(conn, %{"button_pin" => button_pin}) do
-    incomplete_work = Repo.all(from w in Work, where: not w.complete)
-
-    if length(incomplete_work) > 0 do
-      [work_object|_] = incomplete_work
-      TimeKeeper.WorkController.close(conn, work_object)
-    end
-
-    TimeKeeper.WorkController.open(conn, button_pin)
-
-    conn
-    |> put_status(:ok)
-    |> send_resp(200, "All good")
-
-  end
-
-  def round_time(hours) do
-
-    {whole_hour, hour_fraction} = {hours |> Float.floor,
-                                  (hours - Float.floor(hours)) * 60 |> Float.floor}
-
-    cond do
-      hour_fraction <= 15 ->
-        whole_hour + 0.25
-      hour_fraction > 15 and hour_fraction <= 30 ->
-        whole_hour + 0.5
-      hour_fraction > 30 and hour_fraction <= 45 ->
-        whole_hour + 0.75
-      hour_fraction > 45 ->
-        whole_hour + 1.0
-    end
-  end
-
-
-
-  def round_time_spent(aggregate, keys, rounded_aggregate) do
-    if keys.length == 0 do
-      aggregate(:finish, rounded_aggregate)
-    else
-      [first|rest] = keys
-      day_hours = Map.get(aggregate, first)
-      |> Map.to_list
-      |> Enum.map(fn t -> {elem(t, 0), TimeKeeper.WorkController.round_time(elem(t, 1))} end)
-      |> Enum.into(%{})
-
-      new_aggregate = Map.put(rounded_aggregate, first, day_hours)
-
-      round_time_spent(Map.drop(aggregate, first), rest, new_aggregate)
-    end
-  end
-
-  def aggregate(_, rounded_aggregate) do
-    rounded_aggregate
-  end
-
-  def round_time_spent(aggregate) do
-    round_time_spent(aggregate, Map.keys(aggregate), %{})
-  end
-
-
-  def calc_time_spent(work_object) do
-    hours = NaiveDateTime.diff(work_object.updated_at, work_object.inserted_at) / 3600
-      |> Float.round(2)
-
-
-
-    calendar_date = NaiveDateTime.to_date(work_object.inserted_at)
-
-    %{job_code: work_object.job_code, date: calendar_date, time_spent: hours}
-
-  end
-
   def aggregate_time([first_entry|time_entries], aggregate) do
     date_string = Date.to_string(first_entry.date)
 
@@ -133,11 +29,33 @@ defmodule TimeKeeper.WorkController do
   end
 
   def aggregate_time([], aggregate) do
-    aggregate
+    round_job_time(aggregate)
   end
 
   def aggregate_time([first_entry|time_entries]) do
     aggregate_time([first_entry|time_entries], %{})
+  end
+
+  def calc_time_spent(work_object) do
+    hours = NaiveDateTime.diff(work_object.updated_at, work_object.inserted_at) / 3600
+      |> Float.round(2)
+
+    calendar_date = NaiveDateTime.to_date(work_object.inserted_at)
+    %{job_code: work_object.job_code, date: calendar_date, time_spent: hours}
+  end
+
+  def close(conn, work_object) do
+    [current_job|_] = Repo.all(from j in Job, where: j.id == ^work_object.job_id)
+    changeset = Work.changeset(work_object, %{job: current_job, complete: true})
+
+    case Repo.update(changeset) do
+      {:ok, _} ->
+        IO.puts "Work complete on #{current_job.job_code}"
+      {:error, _} ->
+        conn
+        |> put_status(:error)
+        |> send_resp(500, "Error closing out previous work")
+    end
   end
 
   def job_work(conn, %{"start_date" => start_date, "end_date" => end_date}) do
@@ -160,6 +78,80 @@ defmodule TimeKeeper.WorkController do
     |> put_status(:ok)
     |> send_resp(200, response_text)
   end
+
+  def open(conn, button_pin) do
+    [button|_] = Repo.all(from b in Button,
+      where: b.serial_id == ^button_pin,
+      select: b)
+
+    job = Repo.get!(Job, button.job_id)
+    work = Work.changeset(%Work{job: job}, %{})
+
+    case Repo.insert(work) do
+      {:ok, _} ->
+        IO.puts "Work begun on #{job.job_code}"
+      {:error, _} ->
+        conn
+        |> put_status(:error)
+        |> send_resp(500, "Error beginning new work")
+    end
+  end
+
+  def round_hours(hours) do
+
+    {whole_hour, hour_fraction} = {hours |> Float.floor,
+                                  (hours - Float.floor(hours)) * 60 |> Float.floor}
+    cond do
+      hour_fraction <= 15 ->
+        whole_hour + 0.25
+      hour_fraction > 15 and hour_fraction <= 30 ->
+        whole_hour + 0.5
+      hour_fraction > 30 and hour_fraction <= 45 ->
+        whole_hour + 0.75
+      hour_fraction > 45 ->
+        whole_hour + 1.0
+    end
+  end
+
+  def round_job_time(aggregate, keys, rounded_aggregate) do
+    if length(keys) == 0 do
+      round_job_time(:finish, rounded_aggregate)
+    else
+      [first|rest] = keys
+      day_hours = Map.get(aggregate, first)
+      |> Map.to_list
+      |> Enum.map(fn t -> {elem(t, 0), TimeKeeper.WorkController.round_hours(elem(t, 1))} end)
+      |> Enum.into(%{})
+
+      new_aggregate = Map.put(rounded_aggregate, first, day_hours)
+      round_job_time(Map.drop(aggregate, [first]), rest, new_aggregate)
+    end
+  end
+
+  def round_job_time(_, rounded_aggregate) do
+    rounded_aggregate
+  end
+
+  def round_job_time(aggregate) do
+    round_job_time(aggregate, Map.keys(aggregate), %{})
+  end
+
+  def switch(conn, %{"button_pin" => button_pin}) do
+    incomplete_work = Repo.all(from w in Work, where: not w.complete)
+
+    if length(incomplete_work) > 0 do
+      [work_object|_] = incomplete_work
+      TimeKeeper.WorkController.close(conn, work_object)
+    end
+
+    TimeKeeper.WorkController.open(conn, button_pin)
+
+    conn
+    |> put_status(:ok)
+    |> send_resp(200, "All good")
+  end
+
+
 end
 
   # def index(conn, _params) do

@@ -56,7 +56,7 @@ defmodule TimeKeeper.WorkController do
   def round_time_spent({whole_hour, hour_fraction}) do
     cond do
       hour_fraction <= 15 ->
-        whole_hour + 0.26
+        whole_hour + 0.25
       hour_fraction > 15 and hour_fraction <= 30 ->
         whole_hour + 0.5
       hour_fraction > 30 and hour_fraction <= 45 ->
@@ -98,7 +98,7 @@ defmodule TimeKeeper.WorkController do
         IO.puts "no aggregate for date and job_code yet"
         job_hash = %{"time_total" => first_entry.time_spent}
         new_date_hash = Map.put(date_hash, first_entry.job_code, job_hash)
-        new_aggregate = Map.put(aggregate, date_string, date_hash)
+        new_aggregate = Map.put(aggregate, date_string, new_date_hash)
         aggregate_time(time_entries, new_aggregate)
       end
     else

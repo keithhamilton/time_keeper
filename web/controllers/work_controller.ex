@@ -53,7 +53,11 @@ defmodule TimeKeeper.WorkController do
 
   end
 
-  def round_time_spent({whole_hour, hour_fraction}) do
+  def round_time(hours) do
+
+    {whole_hour, hour_fraction} = {hours |> Float.floor,
+                                  (hours - Float.floor(hours)) * 60 |> Float.floor}
+
     cond do
       hour_fraction <= 15 ->
         whole_hour + 0.25
@@ -66,16 +70,42 @@ defmodule TimeKeeper.WorkController do
     end
   end
 
+
+
+  def round_time_spent(aggregate, keys, rounded_aggregate) do
+    if keys.length == 0 do
+      aggregate(:finish, rounded_aggregate)
+    else
+      [first|rest] = keys
+      day_hours = Map.get(aggregate, first)
+      |> Map.to_list
+      |> Enum.map(fn t -> {elem(t, 0), TimeKeeper.WorkController.round_time(elem(t, 1))} end)
+      |> Enum.into(%{})
+
+      new_aggregate = Map.put(rounded_aggregate, first, day_hours)
+
+      round_time_spent(Map.drop(aggregate, first), rest, new_aggregate)
+    end
+  end
+
+  def aggregate(_, rounded_aggregate) do
+    rounded_aggregate
+  end
+
+  def round_time_spent(aggregate) do
+    round_time_spent(aggregate, Map.keys(aggregate), %{})
+  end
+
+
   def calc_time_spent(work_object) do
     hours = NaiveDateTime.diff(work_object.updated_at, work_object.inserted_at) / 3600
       |> Float.round(2)
 
-    time_spent = {hours |> Float.floor, (hours - Float.floor(hours)) * 60 |> Float.floor}
-      |> TimeKeeper.WorkController.round_time_spent
+
 
     calendar_date = NaiveDateTime.to_date(work_object.inserted_at)
 
-    %{job_code: work_object.job_code, date: calendar_date, time_spent: time_spent}
+    %{job_code: work_object.job_code, date: calendar_date, time_spent: hours}
 
   end
 
@@ -124,9 +154,11 @@ defmodule TimeKeeper.WorkController do
     work_time = Enum.map(all_work, fn w -> calc_time_spent(w) end)
       |> aggregate_time
 
+    {_, response_text} = Poison.encode(work_time)
+
     conn
     |> put_status(:ok)
-    |> send_resp(200, Poison.encode(work_time))
+    |> send_resp(200, response_text)
   end
 end
 

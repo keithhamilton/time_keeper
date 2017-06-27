@@ -18,7 +18,7 @@ defmodule TimeKeeper.Router do
 
     get "/", PageController, :index
     post "/work/switch", WorkController, :switch
-    get "/work/:start_date/:end_date", JobController, :job_work
+    get "/work/:start_date/:end_date", WorkController, :job_work
 
     resources "/jobs", JobController
     resources "/buttons", ButtonController

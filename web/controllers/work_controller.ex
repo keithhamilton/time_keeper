@@ -1,6 +1,8 @@
 defmodule TimeKeeper.WorkController do
   use TimeKeeper.Web, :controller
 
+  alias TimeKeeper.Button
+  alias TimeKeeper.Job
   alias TimeKeeper.Work
 
   def open(conn, button_pin) do
@@ -21,14 +23,13 @@ defmodule TimeKeeper.WorkController do
     end
   end
 
-  def close(conn, work_object, changes) do
-    current_job = Repo.all(from j in Job, where: j.id == ^work_object.job_id)
-      |> first
+  def close(conn, work_object) do
+    [current_job|_] = Repo.all(from j in Job, where: j.id == ^work_object.job_id)
     changeset = Work.changeset(work_object, %{job: current_job, complete: true})
 
     case Repo.update(changeset) do
       {:ok, _} ->
-        IO.puts "Work complete on #{changes.job.job_code}"
+        IO.puts "Work complete on #{current_job.job_code}"
       {:error, _} ->
         conn
         |> put_status(:error)
@@ -40,15 +41,91 @@ defmodule TimeKeeper.WorkController do
     incomplete_work = Repo.all(from w in Work, where: not w.complete)
 
     if length(incomplete_work) > 0 do
-      Work.close(conn, first(incomplete_work))
+      [work_object|_] = incomplete_work
+      TimeKeeper.WorkController.close(conn, work_object)
     end
 
-    Work.open(conn, button_pin)
+    TimeKeeper.WorkController.open(conn, button_pin)
 
     conn
     |> put_status(:ok)
     |> send_resp(200, "All good")
 
+  end
+
+  def round_time_spent({whole_hour, hour_fraction}) do
+    cond do
+      hour_fraction <= 15 ->
+        whole_hour + 0.26
+      hour_fraction > 15 and hour_fraction <= 30 ->
+        whole_hour + 0.5
+      hour_fraction > 30 and hour_fraction <= 45 ->
+        whole_hour + 0.75
+      hour_fraction > 45 ->
+        whole_hour + 1.0
+    end
+  end
+
+  def calc_time_spent(work_object) do
+    hours = NaiveDateTime.diff(work_object.updated_at, work_object.inserted_at) / 3600
+      |> Float.round(2)
+
+    time_spent = {hours |> Float.floor, (hours - Float.floor(hours)) * 60 |> Float.floor}
+      |> TimeKeeper.WorkController.round_time_spent
+
+    calendar_date = DateTime.to_date(work_object.inserted_at)
+
+    %{job_code: work_object.job_code, date: calendar_date, time_spent: time_spent}
+
+  end
+
+  def aggregate_time([first_entry|time_entries], aggregate \\ %{}) do
+    # if a key for the date associated with a time entry exists
+    if Map.has_key?(aggregate, Date.to_string(first_entry.date)) do
+      date_string = Date.to_string(first_entry.date)
+      date_hash = Map.get(aggregate, date_string)
+      # if a key for the job_code exists for that day
+      if Map.has_key?(date_hash, Map.get(date_hash, first_entry.job_code)) do
+        job_hash = Map.get(date_hash, first_entry.job_code)
+        current_time = Map.get(job_hash, "time_total")
+        Map.put(job_hash, "time_total", current_time + first_entry.time_spent)
+        # update the value of the hours spent
+        Map.put(date_hash, first_entry.job_code, job_hash)
+        Map.put(aggregate, date_string, date_hash)
+      else
+        job_hash = %{"time_total" => first_entry.time_spent}
+        Map.put(date_hash, first_entry.job_code, job_hash)
+      end
+    else
+      job_hash = %{"time_total" => first_entry.time_spent}
+      date_hash = %{Date.to_string(first_entry.date) => %{first_entry.job_code => job_hash}}
+      Map.put(aggregate, date_hash)
+    end
+
+    aggregate_time(time_entries, aggregate)
+  end
+
+  def aggregate_time([], aggregate) do
+    IO.puts aggregate
+    aggregate
+  end
+
+  def job_work(conn, %{"start_date" => start_date, "end_date" => end_date}) do
+    {_, start_dt, _} = DateTime.from_iso8601("#{start_date}T00:00:00Z")
+    {_, end_dt, _} = DateTime.from_iso8601("#{end_date}T00:00:00Z")
+
+    all_work = Repo.all(from w in Work,
+      where: w.inserted_at >= ^start_dt and w.inserted_at <= ^end_dt and w.complete,
+      select: w)
+
+    IO.puts "Found #{length(all_work)} jobs!"
+
+    work_time = Enum.map(fn w -> calc_time_spent(w) end)
+      |> aggregate_time
+
+    conn
+    |> put_status(:ok)
+    |> send_resp(200, work_time)
   end
 end
 

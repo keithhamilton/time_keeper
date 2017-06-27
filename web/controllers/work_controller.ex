@@ -113,7 +113,6 @@ defmodule TimeKeeper.WorkController do
   end
 
   def aggregate_time([], aggregate) do
-    IO.puts aggregate
     aggregate
   end
 

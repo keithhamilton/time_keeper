@@ -105,7 +105,7 @@ defmodule TimeKeeper.WorkController do
     aggregate_time(time_entries, aggregate)
   end
 
-  def aggregate_time(:[], aggregate) do
+  def aggregate_time([], aggregate) do
     IO.puts aggregate
     aggregate
   end
@@ -115,8 +115,9 @@ defmodule TimeKeeper.WorkController do
     {_, end_dt, _} = DateTime.from_iso8601("#{end_date}T00:00:00Z")
 
     all_work = Repo.all(from w in Work,
-      where: w.inserted_at >= ^start_dt and w.inserted_at <= ^end_dt and w.complete,
-      select: w)
+      join: j in Job,
+      where: j.id == w.job_id and w.inserted_at >= ^start_dt and w.inserted_at <= ^end_dt and w.complete,
+      select: %{inserted_at: w.inserted_at, updated_at: w.updated_at, job_code: j.job_code})
 
     IO.puts "Found #{length(all_work)} jobs!"
 

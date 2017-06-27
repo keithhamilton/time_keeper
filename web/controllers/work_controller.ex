@@ -146,6 +146,13 @@ defmodule TimeKeeper.WorkController do
 
     TimeKeeper.WorkController.open(conn, button_pin)
 
+    job = Repo.all(from b in Button,
+      join: j in Job,
+      where: b.serial_id == button_pin and j.id = b.job_id,
+      select: j.job_code)
+
+    System.cmd("mpg123", ["/home/pi/time_keeper/web/static/assests/audio/#{job}.mp3"])
+
     conn
     |> put_status(:ok)
     |> send_resp(200, "All good")

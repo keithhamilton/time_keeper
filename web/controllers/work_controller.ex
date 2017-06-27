@@ -90,21 +90,18 @@ defmodule TimeKeeper.WorkController do
         IO.puts "aggregate for job_code established"
         job_hash = Map.get(date_hash, first_entry.job_code)
         total_time = Map.get(job_hash, "time_total") + first_entry.time_spent
-        new_job_hash = Map.put(job_hash, "time_total", total_time)
-        new_date_hash = Map.put(date_hash, first_entry.job_code, new_job_hash)
+        new_date_hash = Map.put(date_hash, first_entry.job_code, total_time)
         new_aggregate = Map.put(aggregate, date_string, new_date_hash)
         aggregate_time(time_entries, new_aggregate)
       else
         IO.puts "no aggregate for date and job_code yet"
-        job_hash = %{"time_total" => first_entry.time_spent}
-        new_date_hash = Map.put(date_hash, first_entry.job_code, job_hash)
+        new_date_hash = Map.put(date_hash, first_entry.job_code, first_entry.time_spent)
         new_aggregate = Map.put(aggregate, date_string, new_date_hash)
         aggregate_time(time_entries, new_aggregate)
       end
     else
       IO.puts "no aggregate for date yet"
-      job_hash = %{"time_total" => first_entry.time_spent}
-      date_hash = %{first_entry.job_code => job_hash}
+      date_hash = %{first_entry.job_code => first_entry.time_spent}
       new_aggregate = Map.put(aggregate, date_string, date_hash)
       aggregate_time(time_entries, new_aggregate)
     end

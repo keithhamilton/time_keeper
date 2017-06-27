@@ -104,7 +104,7 @@ defmodule TimeKeeper.WorkController do
     else
       IO.puts "no aggregate for date yet"
       job_hash = %{"time_total" => first_entry.time_spent}
-      date_hash = %{date_string => %{first_entry.job_code => job_hash}}
+      date_hash = %{first_entry.job_code => job_hash}
       new_aggregate = Map.put(aggregate, date_string, date_hash)
       aggregate_time(time_entries, new_aggregate)
     end

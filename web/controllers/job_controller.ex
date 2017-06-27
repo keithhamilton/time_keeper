@@ -64,13 +64,4 @@ defmodule TimeKeeper.JobController do
     |> put_flash(:info, "Job deleted successfully.")
     |> redirect(to: job_path(conn, :index))
   end
-
-  # def job_work(conn, %{"start_date" => start_date, "end_date" => end_date}) do
-  #   all_work = Repo.all(from w in Work,
-  #     where: w.inserted_at >= start_date and w.inserted_at <= end_date,
-  #     select: w)
-  #
-  #
-  # end
-
 end

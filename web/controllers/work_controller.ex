@@ -124,7 +124,7 @@ defmodule TimeKeeper.WorkController do
       |> Enum.into(%{})
 
       new_aggregate = Map.put(rounded_aggregate, first, day_hours)
-      round_job_time(Map.drop(aggregate, first), rest, new_aggregate)
+      round_job_time(Map.drop(aggregate, [first]), rest, new_aggregate)
     end
   end
 

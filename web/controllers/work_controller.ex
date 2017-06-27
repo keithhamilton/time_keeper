@@ -73,7 +73,7 @@ defmodule TimeKeeper.WorkController do
     time_spent = {hours |> Float.floor, (hours - Float.floor(hours)) * 60 |> Float.floor}
       |> TimeKeeper.WorkController.round_time_spent
 
-    calendar_date = DateTime.to_date(work_object.inserted_at)
+    calendar_date = NaiveDateTime.to_date(work_object.inserted_at)
 
     %{job_code: work_object.job_code, date: calendar_date, time_spent: time_spent}
 
@@ -105,7 +105,7 @@ defmodule TimeKeeper.WorkController do
     aggregate_time(time_entries, aggregate)
   end
 
-  def aggregate_time([], aggregate) do
+  def aggregate_time(:[], aggregate) do
     IO.puts aggregate
     aggregate
   end

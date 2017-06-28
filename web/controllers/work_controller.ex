@@ -162,13 +162,33 @@ defmodule TimeKeeper.WorkController do
     |> send_resp(200, "All good")
   end
 
+  def index(conn, _params) do
+    work = Repo.all(Work)
+    render(conn, "index.html", work: work)
+  end
 
+  def edit(conn, %{"id" => id}) do
+    work = Repo.get!(Work, id)
+    changeset = Work.changeset(work)
+    render(conn, "edit.html", work: work, changeset: changeset)
+  end
+
+  def update(conn, %{"id" => id, "work" => work_params}) do
+    work = Repo.get!(Work, id)
+    changeset = Work.changeset(work, work_params)
+
+    case Repo.update(changeset) do
+      {:ok, work} ->
+        conn
+        |> put_flash(:info, "Work updated successfully.")
+        |> redirect(to: work_path(conn, :show, work))
+      {:error, changeset} ->
+        render(conn, "edit.html", work: work, changeset: changeset)
+    end
+  end
 end
 
-  # def index(conn, _params) do
-  #   work = Repo.all(Work)
-  #   render(conn, "index.html", work: work)
-  # end
+
   #
   # def new(conn, _params) do
   #   changeset = Work.changeset(%Work{})
@@ -193,25 +213,9 @@ end
   #   render(conn, "show.html", work: work)
   # end
   #
-  # def edit(conn, %{"id" => id}) do
-  #   work = Repo.get!(Work, id)
-  #   changeset = Work.changeset(work)
-  #   render(conn, "edit.html", work: work, changeset: changeset)
-  # end
+
   #
-  # def update(conn, %{"id" => id, "work" => work_params}) do
-  #   work = Repo.get!(Work, id)
-  #   changeset = Work.changeset(work, work_params)
-  #
-  #   case Repo.update(changeset) do
-  #     {:ok, work} ->
-  #       conn
-  #       |> put_flash(:info, "Work updated successfully.")
-  #       |> redirect(to: work_path(conn, :show, work))
-  #     {:error, changeset} ->
-  #       render(conn, "edit.html", work: work, changeset: changeset)
-  #   end
-  # end
+
   #
   # def delete(conn, %{"id" => id}) do
   #   work = Repo.get!(Work, id)

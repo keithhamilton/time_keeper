@@ -146,12 +146,16 @@ defmodule TimeKeeper.WorkController do
 
     TimeKeeper.WorkController.open(conn, button_pin)
 
-    job = Repo.all(from b in Button,
+    [job_id|_] = Repo.all(from b in Button,
       join: j in Job,
-      where: b.serial_id == button_pin and j.id = b.job_id,
+      where: b.serial_id == ^button_pin,
+      select: b.job_id) 
+
+    [job_code|_] = Repo.all(from j in Job,
+      where: j.id == ^job_id,
       select: j.job_code)
 
-    System.cmd("mpg123", ["/home/pi/time_keeper/web/static/assests/audio/#{job}.mp3"])
+    System.cmd("mpg123", ["/home/pi/time_keeper/web/static/assets/audio/#{job_code}.mp3"])
 
     conn
     |> put_status(:ok)

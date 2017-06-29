@@ -169,7 +169,13 @@ defmodule TimeKeeper.WorkController do
   end
 
   def switch_manual(conn, _params) do
-    buttons = Repo.all(from b in Button, select: b)
+    buttons = Repo.all(from b in Button,
+      join: j in Job,
+      where: b.job_id == j.id,
+      select: %{serial_id: b.serial_id, job: b.job_id, job_code: j.job_code})
+
+    |> Enum.map(fn r -> struct(Button, r) end)
+
     render(conn, "switch.html", buttons: buttons)
   end
 

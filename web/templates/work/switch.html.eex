@@ -1,5 +1,5 @@
 <%= for button <- @buttons do %>
-  <button class="serial-button" id="<%=button.serial_id%>"><%=button.serial_id%></button>
+  <button class="serial-button" id="<%=button.serial_id%>"><%=button.job_code%></button>
 <% end %>
 
 <script type="text/javascript">

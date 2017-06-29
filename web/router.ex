@@ -17,6 +17,7 @@ defmodule TimeKeeper.Router do
     pipe_through :browser # Use the default browser stack
 
     get "/", PageController, :index
+    get "/work/switch", WorkController, :switch_manual
     post "/work/switch", WorkController, :switch
     get "/work/:start_date/:end_date", WorkController, :job_work
 

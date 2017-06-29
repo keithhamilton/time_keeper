@@ -86,6 +86,7 @@ defmodule TimeKeeper.WorkController do
 
     job = Repo.get!(Job, button.job_id)
     work = Work.changeset(%Work{job: job}, %{})
+    IO.puts work
 
     case Repo.insert(work) do
       {:ok, _} ->
@@ -139,6 +140,7 @@ defmodule TimeKeeper.WorkController do
   def switch(conn, %{"button_pin" => button_pin}) do
     IO.puts "Received signal from button #{button_pin}!"
     incomplete_work = Repo.all(from w in Work, where: not w.complete)
+
 
     if length(incomplete_work) > 0 do
       [work_object|_] = incomplete_work

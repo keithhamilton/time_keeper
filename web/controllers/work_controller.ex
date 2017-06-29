@@ -152,14 +152,6 @@ defmodule TimeKeeper.WorkController do
     where: j.id == b.job_id,
     where: b.serial_id == ^button_pin,
     select: j.job_code)
-    #
-    # job_code = Repo.all(from j in Job,
-    # where: j.id == ^job_id,
-    # select: j.job_code)
-
-    # job_code = Repo.all(from j in Job,
-    # where: j.id == ^job_id,
-    # select: j.job_code)
 
     resp = "#{job_code}"
 

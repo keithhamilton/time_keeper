@@ -86,7 +86,8 @@ defmodule TimeKeeper.WorkController do
 
     job = Repo.get!(Job, button.job_id)
     work = Work.changeset(%Work{job: job}, %{})
-    IO.puts work
+    IO.puts work.job_id
+    IO.puts work.complete
 
     case Repo.insert(work) do
       {:ok, _} ->

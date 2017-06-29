@@ -137,6 +137,7 @@ defmodule TimeKeeper.WorkController do
   end
 
   def switch(conn, %{"button_pin" => button_pin}) do
+    IO.puts "Received signal from button #{button_pin}!"
     incomplete_work = Repo.all(from w in Work, where: not w.complete)
 
     if length(incomplete_work) > 0 do
@@ -153,6 +154,8 @@ defmodule TimeKeeper.WorkController do
     job_code = Repo.all(from j in Job,
     where: j.id == ^job_id,
     select: j.job_code)
+
+    IO.puts "Will play #{job_code} audio!"
 
     # System.cmd("mpg123", ["/home/pi/time_keeper/web/static/assests/audio/#{job_code}.mp3"])
 

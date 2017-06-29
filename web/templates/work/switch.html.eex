@@ -1,5 +1,6 @@
 <%= for button <- @buttons do %>
   <button class="serial-button" id="<%=button.serial_id%>"><%=button.job_code%></button>
+  <br/><br/>
 <% end %>
 
 <script type="text/javascript">
@@ -16,7 +17,7 @@
 
     http.onreadystatechange = function() {//Call a function when the state changes.
       if(http.readyState == 4 && http.status == 200) {
-          console.log(http.responseText);
+          window.alert("Now working on: " + http.responseText);
       }
     }
     http.send(params);

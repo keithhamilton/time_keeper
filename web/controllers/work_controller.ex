@@ -155,10 +155,12 @@ defmodule TimeKeeper.WorkController do
     # where: j.id == ^job_id,
     # select: j.job_code)
 
-    resp = "#{job_id}"
+    job_code = Repo.all(from j in Job,
+    where: j.id == ^job_id,
+    select: j.job_code)
 
-    IO.puts "Will play some audio!"
-
+    resp = "#{job_code}"
+    
     conn
     |> put_status(:ok)
     |> send_resp(200, resp)

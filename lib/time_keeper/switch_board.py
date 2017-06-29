@@ -5,8 +5,10 @@ import time
 import requests
 import RPi.GPIO as GPIO
 
-JOB_ENDPOINT = 'http://0.0.0.0:4000/work/switch'
+from sh import mpg123
 
+JOB_ENDPOINT = 'https://aqueous-garden-74263.herokuapp.com/work/switch'
+AUDIO_PATH = '/home/pi/time_keeper/web/static/assets/audio/{}.mp3'
 
 if __name__ == '__main__':
 
@@ -19,6 +21,8 @@ if __name__ == '__main__':
     while True:
         for pin in pins:
             if not GPIO.input(pin):
-                requests.post(JOB_ENDPOINT, data = {'button_pin': pin})
+                resp = requests.post(JOB_ENDPOINT, data = {'button_pin': pin})
+
+                mpg123(AUDIO_PATH.format(resp.text))
 
         time.sleep(0.3)

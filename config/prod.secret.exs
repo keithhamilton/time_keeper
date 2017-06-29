@@ -14,5 +14,5 @@ config :time_keeper, TimeKeeper.Endpoint,
 # Configure your database
 config :time_keeper, TimeKeeper.Repo,
   adapter: Ecto.Adapters.Postgres,
-  hostname: System.get_env("DATABASE_URL")
+  hostname: System.get_env("DATABASE_URL"),
   pool_size: 20

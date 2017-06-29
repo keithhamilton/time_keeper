@@ -23,7 +23,7 @@ config :logger, level: :info
 
 config :time_keeper, TimeKeeper.Repo,
   adapter: Ecto.Adapters.Postgres,
-  hostname: System.get_env("DATABASE_URL"),
+  url: System.get_env("DATABASE_URL"),
   pool_size: 10,
   ssl: true
 

@@ -147,20 +147,22 @@ defmodule TimeKeeper.WorkController do
 
     TimeKeeper.WorkController.open(conn, button_pin)
 
-    job_id = Repo.all(from b in Button,
+    job_code = Repo.all(from b in Button,
+    join: j from Job,
+    on: j.id == b.job_id,
     where: b.serial_id == ^button_pin,
-    select: b.job_id)
+    select: j.job_code)
     #
     # job_code = Repo.all(from j in Job,
     # where: j.id == ^job_id,
     # select: j.job_code)
 
-    job_code = Repo.all(from j in Job,
-    where: j.id == ^job_id,
-    select: j.job_code)
+    # job_code = Repo.all(from j in Job,
+    # where: j.id == ^job_id,
+    # select: j.job_code)
 
     resp = "#{job_code}"
-    
+
     conn
     |> put_status(:ok)
     |> send_resp(200, resp)

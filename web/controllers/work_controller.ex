@@ -151,17 +151,15 @@ defmodule TimeKeeper.WorkController do
     where: b.serial_id == ^button_pin,
     select: b.job_id)
 
-    job_code = Repo.all(from j in Job,
-    where: j.id == ^job_id,
-    select: j.job_code)
+    job = Repo.get!(Job, job_id)
 
-    IO.puts "Will play #{job_code} audio!"
+    IO.puts "Will play #{job.job_code} audio!"
 
     # System.cmd("mpg123", ["/home/pi/time_keeper/web/static/assests/audio/#{job_code}.mp3"])
 
     conn
     |> put_status(:ok)
-    |> send_resp(200, "#{job_code}.mp3")
+    |> send_resp(200, "#{job.job_code}.mp3")
   end
 
   def index(conn, _params) do

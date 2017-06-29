@@ -148,7 +148,7 @@ defmodule TimeKeeper.WorkController do
     TimeKeeper.WorkController.open(conn, button_pin)
 
     job_code = Repo.all(from b in Button,
-    join: j from Job,
+    join: j in Job,
     where: j.id == b.job_id,
     where: b.serial_id == ^button_pin,
     select: j.job_code)

@@ -154,11 +154,11 @@ defmodule TimeKeeper.WorkController do
     where: j.id == ^job_id,
     select: j.job_code)
 
-    System.cmd("mpg123", ["/home/pi/time_keeper/web/static/assests/audio/#{job_code}.mp3"])
+    # System.cmd("mpg123", ["/home/pi/time_keeper/web/static/assests/audio/#{job_code}.mp3"])
 
     conn
     |> put_status(:ok)
-    |> send_resp(200, "All good")
+    |> send_resp(200, "#{job_code}.mp3")
   end
 
   def index(conn, _params) do
@@ -167,7 +167,9 @@ defmodule TimeKeeper.WorkController do
   end
 
   def edit(conn, %{"id" => id}) do
-    work = Repo.get!(Work, id)
+    [work|_] = Repo.all(from w in Work,
+      where: w.id == ^id,
+      select: w)
     changeset = Work.changeset(work)
     render(conn, "edit.html", work: work, changeset: changeset)
   end

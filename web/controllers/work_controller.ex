@@ -137,6 +137,7 @@ defmodule TimeKeeper.WorkController do
   end
 
   def switch(conn, %{"button_pin" => button_pin}) do
+    IO.puts "Received signal from button #{button_pin}!"
     incomplete_work = Repo.all(from w in Work, where: not w.complete)
 
     if length(incomplete_work) > 0 do
@@ -146,20 +147,17 @@ defmodule TimeKeeper.WorkController do
 
     TimeKeeper.WorkController.open(conn, button_pin)
 
-    [job_id|_] = Repo.all(from b in Button,
-      join: j in Job,
-      where: b.serial_id == ^button_pin,
-      select: b.job_id) 
+    job_code = Repo.all(from b in Button,
+    join: j in Job,
+    where: j.id == b.job_id,
+    where: b.serial_id == ^button_pin,
+    select: j.job_code)
 
-    [job_code|_] = Repo.all(from j in Job,
-      where: j.id == ^job_id,
-      select: j.job_code)
-
-    System.cmd("mpg123", ["/home/pi/time_keeper/web/static/assets/audio/#{job_code}.mp3"])
+    resp = "#{job_code}"
 
     conn
     |> put_status(:ok)
-    |> send_resp(200, "All good")
+    |> send_resp(200, resp)
   end
 
   def index(conn, _params) do
@@ -168,7 +166,9 @@ defmodule TimeKeeper.WorkController do
   end
 
   def edit(conn, %{"id" => id}) do
-    work = Repo.get!(Work, id)
+    [work|_] = Repo.all(from w in Work,
+      where: w.id == ^id,
+      select: w)
     changeset = Work.changeset(work)
     render(conn, "edit.html", work: work, changeset: changeset)
   end

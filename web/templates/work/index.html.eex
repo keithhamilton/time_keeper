@@ -14,6 +14,8 @@
     <tr>
       <td><%= work.complete %></td>
       <td><%= work.job_id %></td>
+      <td><%= work.inserted_at %></td>
+      <td><%= work.updated_at %></td>
 
       <td class="text-right">
         <%= link "Show", to: work_path(@conn, :show, work), class: "btn btn-default btn-xs" %>

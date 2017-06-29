@@ -23,6 +23,9 @@ if __name__ == '__main__':
             if not GPIO.input(pin):
                 resp = requests.post(JOB_ENDPOINT, data = {'button_pin': pin})
 
-                mpg123(AUDIO_PATH.format(resp.text))
+                try:
+                    mpg123(AUDIO_PATH.format(resp.text))
+                except Exception:
+                    print('Switched to job {}'.format(resp.text))
 
         time.sleep(0.3)

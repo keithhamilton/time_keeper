@@ -147,19 +147,21 @@ defmodule TimeKeeper.WorkController do
 
     TimeKeeper.WorkController.open(conn, button_pin)
 
-    # job_id = Repo.all(from b in Button,
-    # where: b.serial_id == ^button_pin,
-    # select: b.job_id)
+    job_id = Repo.all(from b in Button,
+    where: b.serial_id == ^button_pin,
+    select: b.job_id)
     #
     # job_code = Repo.all(from j in Job,
     # where: j.id == ^job_id,
     # select: j.job_code)
 
+    resp = "#{job_id}"
+
     IO.puts "Will play some audio!"
 
     conn
     |> put_status(:ok)
-    |> send_resp(200, "All good")
+    |> send_resp(200, resp)
   end
 
   def index(conn, _params) do

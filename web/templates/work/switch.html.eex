@@ -17,10 +17,32 @@
 
     http.onreadystatechange = function() {//Call a function when the state changes.
       if(http.readyState == 4 && http.status == 200) {
-          window.alert("Now working on: " + http.responseText);
+          playAudio(http.responseText);
       }
     }
     http.send(params);
+  }
+
+  function playAudio(jobCode) {
+
+  	var URL = 'https://aqueous-garden-74263.herokuapp.com/audio/' + jobCode + '.mp3';
+
+  	var context = new AudioContext();
+
+  	window.fetch(URL).then(function (response) {
+  		return response.arrayBuffer();
+  	}).then(function (arrayBuffer) {
+  		return context.decodeAudioData(arrayBuffer);
+  	}).then(function (audioBuffer) {
+      return play(audioBuffer)
+  	});
+
+  	function play(audioBuffer) {
+  		var source = context.createBufferSource();
+  		source.buffer = audioBuffer;
+  		source.connect(context.destination);
+  		source.start();
+  	}
   }
 
   var buttons = document.querySelectorAll('.serial-button');

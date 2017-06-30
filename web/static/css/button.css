@@ -24,6 +24,10 @@ h1 {
   cursor: pointer;
   transition: box-shadow 200ms;
   font-size: .8em;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 

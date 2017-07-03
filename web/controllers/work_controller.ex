@@ -136,10 +136,15 @@ defmodule TimeKeeper.WorkController do
     round_job_time(aggregate, Map.keys(aggregate), %{})
   end
 
-  def switch(conn, %{"button_pin" => button_pin}) do
+  def switch(conn, %{"button_pin" => button_pin, "serial" => serial}) do
     IO.puts "Received signal from button #{button_pin}!"
-    incomplete_work = Repo.all(from w in Work, where: not w.complete)
-
+    incomplete_work = Repo.all(from w in Work,
+    join: j in Job,
+    join: u in User,
+    where: j.id == w.job_id,
+    where: j.user_id == u.id,
+    where: u.serial == ^serial,
+    where: not w.complete)
 
     if length(incomplete_work) > 0 do
       [work_object|_] = incomplete_work
@@ -153,14 +158,6 @@ defmodule TimeKeeper.WorkController do
     where: j.id == b.job_id,
     where: b.serial_id == ^button_pin,
     select: j.job_code)
-    #
-    # job_code = Repo.all(from j in Job,
-    # where: j.id == ^job_id,
-    # select: j.job_code)
-
-    # job_code = Repo.all(from j in Job,
-    # where: j.id == ^job_id,
-    # select: j.job_code)
 
     resp = "#{job_code}"
 

@@ -16,13 +16,16 @@ defmodule TimeKeeper.Router do
   scope "/", TimeKeeper do
     pipe_through :browser # Use the default browser stack
 
-    get "/", WorkController, :switch_manual
+    get "/", SessionController, :new
+    get "/signin/:token", SessionController, :show, as: :signin
     get "/work/switch", WorkController, :switch_manual
     post "/work/switch", WorkController, :switch
     get "/work/:start_date/:end_date", WorkController, :job_work
 
     resources "/jobs", JobController
     resources "/buttons", ButtonController
+    resources "/sessions", SessionController, only: [:new, :create, :delete]
+    resources "/users", UserController
     resources "/work", WorkController
 
   end

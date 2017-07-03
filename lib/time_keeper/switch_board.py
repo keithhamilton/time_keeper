@@ -14,6 +14,9 @@ if __name__ == '__main__':
 
     GPIO.setmode(GPIO.BCM)
 
+    with open('/proc/cpuinfo', 'r') as f:
+        board_serial = f.readlines()[-1].strip()[-8:]
+
     pins = [14, 15, 17, 18, 22, 23, 27]
     for pin in pins:
         GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -21,7 +24,8 @@ if __name__ == '__main__':
     while True:
         for pin in pins:
             if not GPIO.input(pin):
-                resp = requests.post(JOB_ENDPOINT, data = {'button_pin': pin})
+                payload = {'button_pin': pin, 'serial': board_serial}
+                resp = requests.post(JOB_ENDPOINT, data = payload)
 
                 try:
                     mpg123(AUDIO_PATH.format(resp.text))

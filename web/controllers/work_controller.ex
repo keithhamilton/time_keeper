@@ -37,6 +37,8 @@ defmodule TimeKeeper.WorkController do
       job_hash = Map.get(aggregate, job_code)
 
       if Map.has_key?(job_hash, first_entry.date) do
+        IO.puts first_entry.time_spent
+        IO.puts Map.get(job_hash, first_entry.date)
         total_time = Map.get(job_hash, first_entry.date) + first_entry.time_spent
         new_job_hash = Map.put(job_hash, first_entry.date, total_time)
         new_aggregate = Map.put(aggregate, job_code, new_job_hash)

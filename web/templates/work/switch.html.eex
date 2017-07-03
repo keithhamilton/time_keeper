@@ -3,12 +3,15 @@
 
 <% end %>
 
+<input id='user-serial' type='hidden' value='e779cdff'/>
+
 <script type="text/javascript">
 
   function switch_work(serial_id) {
     var http = new XMLHttpRequest();
     var url = "https://aqueous-garden-74263.herokuapp.com/work/switch";
-    var params = "button_pin=" + serial_id;
+    var serial = document.getElementById('user-serial').value
+    var params = "button_pin=" + serial_id + "&serial=" + serial;
 
     http.open("POST", url, true);
 

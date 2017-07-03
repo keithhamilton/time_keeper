@@ -20,10 +20,6 @@ defmodule TimeKeeper.TokenAuthentication do
   def provide_token(nil), do: {:error, :not_found}
 
   def provide_token(email) when is_binary(email) do
-    user = User |> Repo.get_by(email: email)
-    case user do
-      nil -> 
-    end
     User
     |> Repo.get_by(email: email)
     |> send_token()

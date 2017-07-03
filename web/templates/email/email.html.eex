@@ -1,0 +1,5 @@
+Here is your login link:
+
+<%= signin_url("https://aqueous-garden-74263.herokuapp.com/work/switch", :show, @token) %>
+
+It is valid for 30 days.

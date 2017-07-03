@@ -1,0 +1,13 @@
+<h2>Show session</h2>
+
+<ul>
+
+  <li>
+    <strong>Email:</strong>
+    <%= @session.email %>
+  </li>
+
+</ul>
+
+<%= link "Edit", to: session_path(@conn, :edit, @session) %>
+<%= link "Back", to: session_path(@conn, :index) %>

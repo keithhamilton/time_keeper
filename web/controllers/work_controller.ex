@@ -6,40 +6,40 @@ defmodule TimeKeeper.WorkController do
   alias TimeKeeper.User
   alias TimeKeeper.Work
 
-  # def aggregate_time([first_entry|time_entries], aggregate) do
-  #   job_code = first_entry.job_code
-  #   date_string = Date.to_string(first_entry.date)
-  #
-  #   if Map.has_key?(aggregate, job_code) do
-  #     date_hash = Map.get(aggregate, date_string)
-  #
-  #     if Map.has_key?(date_hash, first_entry.job_code) do
-  #       total_time = Map.get(date_hash, first_entry.job_code) + first_entry.time_spent
-  #       new_date_hash = Map.put(date_hash, first_entry.job_code, total_time)
-  #       new_aggregate = Map.put(aggregate, date_string, new_date_hash)
-  #       aggregate_time(time_entries, new_aggregate)
-  #     else
-  #       new_date_hash = Map.put(date_hash, first_entry.job_code, first_entry.time_spent)
-  #       new_aggregate = Map.put(aggregate, date_string, new_date_hash)
-  #       aggregate_time(time_entries, new_aggregate)
-  #     end
-  #   else
-  #     date_hash = %{first_entry.job_code => first_entry.time_spent}
-  #     new_aggregate = Map.put(aggregate, date_string, date_hash)
-  #     aggregate_time(time_entries, new_aggregate)
-  #   end
-  # end
+  def aggregate_time([first_entry|time_entries], aggregate) do
+    date_string = Date.to_string(first_entry.date)
+
+    if Map.has_key?(aggregate, date_string) do
+      date_hash = Map.get(aggregate, date_string)
+
+      if Map.has_key?(date_hash, first_entry.job_code) do
+        total_time = Map.get(date_hash, first_entry.job_code) + first_entry.time_spent
+        new_date_hash = Map.put(date_hash, first_entry.job_code, total_time)
+        new_aggregate = Map.put(aggregate, date_string, new_date_hash)
+        aggregate_time(time_entries, new_aggregate)
+      else
+        new_date_hash = Map.put(date_hash, first_entry.job_code, first_entry.time_spent)
+        new_aggregate = Map.put(aggregate, date_string, new_date_hash)
+        aggregate_time(time_entries, new_aggregate)
+      end
+    else
+      date_hash = %{first_entry.job_code => first_entry.time_spent}
+      new_aggregate = Map.put(aggregate, date_string, date_hash)
+      aggregate_time(time_entries, new_aggregate)
+    end
+  end
 
   def aggregate_time([first_entry|time_entries], aggregate) do
+    IO.puts "#{List.length(time_entries)} jobs remain"
     job_code = first_entry.job_code
 
     if Map.has_key?(aggregate, job_code) do
       job_hash = Map.get(aggregate, job_code)
 
       if Map.has_key?(job_hash, first_entry.date) do
-        IO.puts first_entry.time_spent
-        IO.puts Map.get(job_hash, first_entry.date)
+        IO.puts "Current time spent: #{Map.get(job_hash, first_entry.date)}"
         total_time = Map.get(job_hash, first_entry.date) + first_entry.time_spent
+        IO.puts "New time: #{total_time}"
         new_job_hash = Map.put(job_hash, first_entry.date, total_time)
         new_aggregate = Map.put(aggregate, job_code, new_job_hash)
         aggregate_time(time_entries, new_aggregate)

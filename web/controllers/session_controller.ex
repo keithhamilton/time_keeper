@@ -15,7 +15,7 @@ defmodule TimeKeeper.SessionController do
     user = User |> Repo.get_by(email: email)
     case user do
       nil -> conn
-        |> assign(:user, %{"email" => email})
+        |> assign(:user, %{"email" => email, "board" => "e779cdff"})
         |> redirect(to: session_path(conn, :create))
       _ -> TokenAuthentication.provide_token(email)
     end

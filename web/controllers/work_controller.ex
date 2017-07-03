@@ -32,25 +32,26 @@ defmodule TimeKeeper.WorkController do
   def aggregate_time([first_entry|time_entries], aggregate) do
     IO.puts "#{List.length(time_entries)} jobs remain"
     job_code = first_entry.job_code
+    job_date = first_entry.date
+    job_hash = Map.get(aggregate, job_code)
+    job_time = first_entry.time_spent
 
-    if Map.has_key?(aggregate, job_code) do
-      job_hash = Map.get(aggregate, job_code)
+    case job_hash do
+      nil ->
+        new_job_hash = %{first_entry.date => first_entry.time_spent}
+        aggregate_time(time_entries, Map.put(aggregate, job_code, new_job_hash))
+      _ ->
+        date_hash = Map.get(job_hash, job_date)
 
-      if Map.has_key?(job_hash, first_entry.date) do
-        IO.puts "Current time spent: #{Map.get(job_hash, first_entry.date)}"
-        total_time = Map.get(job_hash, first_entry.date) + first_entry.time_spent
-        IO.puts "New time: #{total_time}"
-        new_job_hash = Map.put(job_hash, first_entry.date, total_time)
-        new_aggregate = Map.put(aggregate, job_code, new_job_hash)
-        aggregate_time(time_entries, new_aggregate)
-      else
-        new_job_hash = Map.put(job_hash, first_entry.date, first_entry.time_spent)
-        new_aggregate = Map.put(aggregate, job_code, new_job_hash)
-      end
-    else
-      job_hash = %{first_entry.date => first_entry.time_spent}
-      new_aggregate = Map.put(aggregate, job_code, job_hash)
-      aggregate_time(time_entries, new_aggregate)
+        case date_hash do
+          nil ->
+            new_job_hash = Map.put(job_hash, job_date, job_time)
+            aggregate_time(time_entries, Map.put(aggregate, job_code, new_job_hash))
+          _ ->
+            total_time = Map.get(job_hash, job_date) + job_time
+            new_job_hash = Map.put(job_hash, job_date, total_time)
+            aggregate_time(time_entries, Map.put(aggregate, job_code, new_job_hash))
+        end
     end
   end
 

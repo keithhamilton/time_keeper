@@ -30,7 +30,7 @@ defmodule TimeKeeper.WorkController do
   # end
 
   def aggregate_time([first_entry|time_entries], aggregate) do
-    IO.puts "#{List.length(time_entries)} jobs remain"
+    IO.puts "#{length(time_entries)} jobs remain"
     job_code = first_entry.job_code
     job_date = first_entry.date
     job_hash = Map.get(aggregate, job_code)

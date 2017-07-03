@@ -3,6 +3,7 @@ defmodule TimeKeeper.WorkController do
 
   alias TimeKeeper.Button
   alias TimeKeeper.Job
+  alias TimeKeeper.User
   alias TimeKeeper.Work
 
   def aggregate_time([first_entry|time_entries], aggregate) do

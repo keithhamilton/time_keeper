@@ -144,7 +144,7 @@ defmodule TimeKeeper.WorkController do
     join: u in User,
     where: j.id == w.job_id,
     where: j.user_id == u.id,
-    where: u.serial == ^serial,
+    where: u.board == ^serial,
     where: not w.complete)
 
     if length(incomplete_work) > 0 do

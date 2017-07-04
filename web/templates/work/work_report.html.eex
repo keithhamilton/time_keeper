@@ -1,0 +1,20 @@
+<h2>Hours Worked <span class='download-link'><%= link "(download)", to: @download_link %></span></h2>
+<br/>
+<%= for record <- @records do %>
+  <div class='time-record'>
+    <div class='time-record-date'><%=record.date%></div>
+    <%= for value <- Enum.filter(record.values, fn e -> elem(e, 0) != "AFK" end) do %>
+      <div class='time-record-details'>
+        <span class='time-record-client'><%=elem(value, 0)%></span>
+        <span class='time-record-hours'><%=elem(value, 1)%></span>
+      </div>
+    <% end %>
+    <div class='time-record-divider'></div>
+    <div class='time-record-total'><b>Day total:</b>
+      <%=Enum.filter(record.values, fn e -> elem(e, 0) != "AFK" end)
+          |> Enum.map(fn e -> elem(e, 1) end)
+          |> Enum.reduce(fn x, y -> x + y end)%>
+    </div>
+    <br/>
+  </div>
+<% end %>

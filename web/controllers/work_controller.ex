@@ -106,15 +106,20 @@ defmodule TimeKeeper.WorkController do
     IO.puts "Found #{length(all_work)} jobs!"
 
     case download do
-      "false" ->
-        {_, response_text} = Enum.map(all_work, fn w -> calc_time_spent(w) end)
+      "browser" ->
+        time_records = Enum.map(all_work, fn w -> calc_time_spent(w) end)
         |> aggregate_time_by_date
         |> round_job_time
-        |> Poison.encode
+        |> Map.to_list
+        |> Enum.map(fn t -> %{date: elem(t, 0), values: elem(t, 1) |> Map.to_list} end)
+#        |> Poison.encode!
+
+        download_link = "/work/#{start_date}/#{end_date}/time_report"
 
         conn
         |> put_status(:ok)
-        |> send_resp(200, response_text)
+        |> render("work_report.html", records: time_records, download_link: download_link)
+#        |> send_resp(200, response_text)
 
       _ ->
         response_text = Enum.map(all_work, fn w -> calc_time_spent(w) end)
@@ -126,10 +131,7 @@ defmodule TimeKeeper.WorkController do
         |> put_status(:ok)
         |> put_resp_content_type("text/csv")
         |> send_file(200, response_text)
-
-        File.rm(response_text)
     end
-
   end
 
   def open(conn, button_pin) do
@@ -273,8 +275,10 @@ defmodule TimeKeeper.WorkController do
 
     IO.binwrite(file, "#{Enum.concat(["job_code"], date_columns) |> Enum.join(",")}\n")
 
-    Enum.map(Map.keys(time_data), fn t -> get_job_times(t, time_data, date_columns) end)
-      |> Enum.map(fn jt -> IO.binwrite(file, jt) end)
+    Map.keys(time_data)
+    |> Enum.filter(fn e -> e != "AFK" end)
+    |> Enum.map(fn t -> get_job_times(t, time_data, date_columns) end)
+    |> Enum.map(fn jt -> IO.binwrite(file, jt) end)
 
     File.close(file)
     "/tmp/time.csv"

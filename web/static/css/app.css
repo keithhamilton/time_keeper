@@ -1,1 +1,43 @@
-/* This file is for your main application css. */
+body {
+  font-family: monospace;
+  text-align: left;
+}
+
+.download-link {
+  font-size: 1em;
+}
+
+.time-record-divider {
+  height: 1px;
+  width: 45%;
+  background-color: white;
+  margin: 30px 0 15px 0;
+}
+
+.time-record-date {
+  font-size: 1em;
+  font-weight: bolder;
+  background-color: black;
+  width: 45%;
+  padding-left: 1%;
+}
+
+.time-record-details {
+  height: .75em;
+}
+
+.time-record-client {
+  font-size: .4em; font-weight: bold;
+}
+
+.time-record-client::after {
+  content: " => ";
+}
+
+.time-record-hours {
+  font-size: .4em;
+}
+
+.time-record-total {
+  font-size: .4em;
+}

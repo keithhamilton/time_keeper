@@ -1,6 +1,8 @@
 defmodule TimeKeeper.WorkController do
   use TimeKeeper.Web, :controller
 
+  use Plug.Redirect
+
   alias TimeKeeper.Button
   alias TimeKeeper.Job
   alias TimeKeeper.User
@@ -92,6 +94,15 @@ defmodule TimeKeeper.WorkController do
     end
   end
 
+  def job_work(conn, %{"start_date" => start_date, "end_date" => end_date}) do
+    # conn
+    # |> assign(:start_date, start_date)
+    # |> assign(:end_date, end_date)
+    # |> assign(:download, false)
+    # |> redirect(to: work_path(conn, :job_work))
+    redirect "/work/#{start_date}/#{end_date}/false"
+  end
+
   def job_work(conn, %{"start_date" => start_date, "end_date" => end_date, "download" => download}) do
     {_, start_dt, _} = DateTime.from_iso8601("#{start_date}T00:00:00Z")
     {_, end_dt, _} = DateTime.from_iso8601("#{end_date}T00:00:00Z")
@@ -104,7 +115,7 @@ defmodule TimeKeeper.WorkController do
     IO.puts "Found #{length(all_work)} jobs!"
 
     case download do
-      nil ->
+      false ->
         {_, response_text} = Enum.map(all_work, fn w -> calc_time_spent(w) end)
         |> aggregate_time_by_date
         |> round_job_time
@@ -255,7 +266,7 @@ defmodule TimeKeeper.WorkController do
     end
   end
 
-  def get_job_times(job_code, time_data, dates) do
+  defp get_job_times(job_code, time_data, dates) do
     job_hash = Map.get(time_data, job_code)
     date_times = Enum.map(dates, fn d -> Map.get(job_hash, d) end) |> Enum.join(",")
     "#{job_code},#{date_times}\n"
@@ -300,8 +311,6 @@ defmodule TimeKeeper.WorkController do
     work = Repo.get!(Work, id)
     render(conn, "show.html", work: work)
   end
-
-
 
   def delete(conn, %{"id" => id}) do
     work = Repo.get!(Work, id)

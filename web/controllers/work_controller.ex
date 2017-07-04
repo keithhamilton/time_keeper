@@ -104,7 +104,7 @@ defmodule TimeKeeper.WorkController do
     IO.puts "Found #{length(all_work)} jobs!"
 
     case download do
-      false ->
+      "false" ->
         {_, response_text} = Enum.map(all_work, fn w -> calc_time_spent(w) end)
         |> aggregate_time_by_date
         |> round_job_time

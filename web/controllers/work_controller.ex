@@ -235,7 +235,7 @@ defmodule TimeKeeper.WorkController do
   def get_job_times(job_code, time_data, dates) do
     job_hash = Map.get(time_data, job_code)
     date_times = Enum.map(dates, fn d -> Map.get(job_hash, d) end) |> Enum.join(",")
-    "#{job_code},#{date_times}"
+    "#{job_code},#{date_times}\n"
   end
 
   def write_csv(time_data) do
@@ -246,7 +246,7 @@ defmodule TimeKeeper.WorkController do
       |> Enum.sort
     {:ok, file} = File.open "/tmp/time.csv", [:write]
 
-    IO.binwrite(file, Enum.concat(["job_code"], date_columns) |> Enum.join(","))
+    IO.binwrite(file, "#{Enum.concat(["job_code"], date_columns) |> Enum.join(",")}\n")
 
     Enum.map(Map.keys(time_data), fn t -> get_job_times(t, time_data, date_columns) end)
       |> Enum.map(fn jt -> IO.binwrite(file, jt) end)

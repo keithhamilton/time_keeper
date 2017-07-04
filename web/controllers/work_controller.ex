@@ -105,7 +105,7 @@ defmodule TimeKeeper.WorkController do
     conn
     |> put_status(:ok)
     |> put_resp_content_type("application/octet-stream")
-    |> send_resp(200, response_text)
+    |> send_file(200, response_text)
   end
 
   def open(conn, button_pin) do

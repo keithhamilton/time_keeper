@@ -104,7 +104,7 @@ defmodule TimeKeeper.WorkController do
 
     conn
     |> put_status(:ok)
-    |> put_resp_content_type(conn, "application/octet-stream")
+    |> put_resp_content_type("application/octet-stream")
     |> send_resp(200, response_text)
   end
 

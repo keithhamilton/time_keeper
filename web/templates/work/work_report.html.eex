@@ -13,7 +13,7 @@
     <div class='time-record-total'><b>Day total:</b>
       <%=Enum.filter(record.values, fn e -> elem(e, 0) != "AFK" end)
           |> Enum.map(fn e -> elem(e, 1) end)
-          |> Enum.reduce(fn x, y -> x + y end)%>
+          |> Enum.reduce(0, fn x, y -> x + y end)%>
     </div>
     <br/>
   </div>

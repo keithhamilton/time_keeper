@@ -2,8 +2,6 @@ defmodule TimeKeeper.JobController do
   use TimeKeeper.Web, :controller
 
   alias TimeKeeper.Job
-  alias TimeKeeper.Button
-  alias TimeKeeper.Work
 
   def index(conn, _params) do
     jobs = Repo.all(Job)

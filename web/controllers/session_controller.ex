@@ -5,7 +5,6 @@ defmodule TimeKeeper.SessionController do
   use TimeKeeper.Web, :controller
 
   alias TimeKeeper.{TokenAuthentication, User}
-  alias TimeKeeper.Router.Helpers, as: Routes
 
   def new(conn, _params) do
       render(conn, "new.html")

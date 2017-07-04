@@ -96,7 +96,7 @@ defmodule TimeKeeper.WorkController do
 
     IO.puts "Found #{length(all_work)} jobs!"
 
-    {_, response_text} = Enum.map(all_work, fn w -> calc_time_spent(w) end)
+    response_text = Enum.map(all_work, fn w -> calc_time_spent(w) end)
       |> aggregate_time
       |> round_job_time
       |> write_csv

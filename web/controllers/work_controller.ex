@@ -7,25 +7,27 @@ defmodule TimeKeeper.WorkController do
   alias TimeKeeper.Work
 
   def aggregate_time_by_date([first_entry|time_entries], aggregate) do
-    date_string = Date.to_string(first_entry.date)
+    job_code = first_entry.job_code
+    job_date = first_entry.date
+    job_time = first_entry.time_spent
+    date_hash = Map.get(aggregate, job_date)
 
-    if Map.has_key?(aggregate, date_string) do
-      date_hash = Map.get(aggregate, date_string)
+    case date_hash do
+      nil ->
+        new_date_hash = %{job_code => job_time}
+        aggregate_time_by_date(time_entries, Map.put(aggregate, job_date, new_date_hash))
+      _ ->
+        job_hash = Map.get(date_hash, job_code)
 
-      if Map.has_key?(date_hash, first_entry.job_code) do
-        total_time = Map.get(date_hash, first_entry.job_code) + first_entry.time_spent
-        new_date_hash = Map.put(date_hash, first_entry.job_code, total_time)
-        new_aggregate = Map.put(aggregate, date_string, new_date_hash)
-        aggregate_time_by_date(time_entries, new_aggregate)
-      else
-        new_date_hash = Map.put(date_hash, first_entry.job_code, first_entry.time_spent)
-        new_aggregate = Map.put(aggregate, date_string, new_date_hash)
-        aggregate_time_by_date(time_entries, new_aggregate)
-      end
-    else
-      date_hash = %{first_entry.job_code => first_entry.time_spent}
-      new_aggregate = Map.put(aggregate, date_string, date_hash)
-      aggregate_time_by_date(time_entries, new_aggregate)
+        case job_hash do
+          nil ->
+            new_date_hash = Map.put(date_hash, job_code, job_time)
+            aggregate_time_by_date(time_entries, Map.put(aggregate, job_date, new_date_hash))
+          _ ->
+            total_time = Map.get(date_hash, job_code) + job_time
+            new_date_hash = Map.put(date_hash, job_code, total_time)
+            aggregate_time_by_date(time_entries, Map.put(aggregate, job_date, new_date_hash))
+        end
     end
   end
 

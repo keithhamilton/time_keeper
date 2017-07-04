@@ -56,7 +56,7 @@ defmodule TimeKeeper.WorkController do
   end
 
   def aggregate_time([], aggregate) do
-    round_job_time(aggregate)
+    aggregate
   end
 
   def aggregate_time([first_entry|time_entries]) do
@@ -96,13 +96,15 @@ defmodule TimeKeeper.WorkController do
 
     IO.puts "Found #{length(all_work)} jobs!"
 
-    work_time = Enum.map(all_work, fn w -> calc_time_spent(w) end)
+    {_, response_text} = Enum.map(all_work, fn w -> calc_time_spent(w) end)
       |> aggregate_time
-
-    {_, response_text} = Poison.encode(work_time)
+      |> round_job_time
+      |> write_csv
+      |> Poison.encode
 
     conn
     |> put_status(:ok)
+    |> put_resp_content_type(conn, "application/octet-stream")
     |> send_resp(200, response_text)
   end
 
@@ -229,6 +231,29 @@ defmodule TimeKeeper.WorkController do
       {:error, changeset} ->
         render(conn, "edit.html", work: work, changeset: changeset)
     end
+  end
+
+  def get_job_times(job_code, time_data, dates) do
+    job_hash = Map.get(time_data, job_code)
+    date_times = Enum.map(dates, fn d -> Map.get(job_hash, d) end) |> Enum.join(",")
+    "#{job_code},#{date_times}"
+  end
+
+  def write_csv(time_data) do
+    date_columns = Map.values(time_data)
+      |> Enum.map(fn i -> Map.keys(i) end)
+      |> Enum.reduce(fn x, y -> Enum.concat(x, y) end)
+      |> Enum.uniq
+      |> Enum.sort
+    {:ok, file} = File.open "/tmp/time.csv", [:write]
+
+    IO.binwrite(file, Enum.concat(["job_code"], date_columns) |> Enum.join(","))
+
+    Enum.map(Map.keys(time_data), fn t -> get_job_times(t, time_data, date_columns) end)
+      |> Enum.map(fn jt -> IO.binwrite(file, jt) end)
+
+    File.close(file)
+    "/tmp/time.csv"
   end
 
   def new(conn, _params) do

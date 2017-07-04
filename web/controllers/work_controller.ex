@@ -93,7 +93,11 @@ defmodule TimeKeeper.WorkController do
   end
 
   def job_work(conn, %{"start_date" => start_date, "end_date" => end_date}) do
-    job_work(conn, %{"start_date" => start_date, "end_date" => end_date, "download" => false})
+    conn
+    |> assign(:start_date, start_date)
+    |> assign(:end_date, end_date)
+    |> assign(:download, false)
+    |> redirect(to: work_path(conn, :job_work))
   end
 
   def job_work(conn, %{"start_date" => start_date, "end_date" => end_date, "download" => download}) do
@@ -259,7 +263,7 @@ defmodule TimeKeeper.WorkController do
     end
   end
 
-  def get_job_times(job_code, time_data, dates) do
+  defp get_job_times(job_code, time_data, dates) do
     job_hash = Map.get(time_data, job_code)
     date_times = Enum.map(dates, fn d -> Map.get(job_hash, d) end) |> Enum.join(",")
     "#{job_code},#{date_times}\n"
@@ -304,8 +308,6 @@ defmodule TimeKeeper.WorkController do
     work = Repo.get!(Work, id)
     render(conn, "show.html", work: work)
   end
-
-
 
   def delete(conn, %{"id" => id}) do
     work = Repo.get!(Work, id)

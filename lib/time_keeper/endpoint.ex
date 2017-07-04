@@ -38,5 +38,6 @@ defmodule TimeKeeper.Endpoint do
     key: "_time_keeper_key",
     signing_salt: "Z8/iJpcA"
 
+  plug TimeKeeper.Redirector
   plug TimeKeeper.Router
 end

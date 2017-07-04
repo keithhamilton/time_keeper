@@ -1,8 +1,6 @@
 defmodule TimeKeeper.WorkController do
   use TimeKeeper.Web, :controller
 
-  use Plug.Redirect
-
   alias TimeKeeper.Button
   alias TimeKeeper.Job
   alias TimeKeeper.User
@@ -92,15 +90,6 @@ defmodule TimeKeeper.WorkController do
         |> put_status(:error)
         |> send_resp(500, "Error closing out previous work")
     end
-  end
-
-  def job_work(conn, %{"start_date" => start_date, "end_date" => end_date}) do
-    # conn
-    # |> assign(:start_date, start_date)
-    # |> assign(:end_date, end_date)
-    # |> assign(:download, false)
-    # |> redirect(to: work_path(conn, :job_work))
-    Plug.Redirect.redirect "/work/#{start_date}/#{end_date}/false"
   end
 
   def job_work(conn, %{"start_date" => start_date, "end_date" => end_date, "download" => download}) do
@@ -260,7 +249,7 @@ defmodule TimeKeeper.WorkController do
       {:ok, work} ->
         conn
         |> put_flash(:info, "Work updated successfully.")
-        |> Phoenix.Controller.redirect(to: work_path(conn, :show, work))
+        |> redirect(to: work_path(conn, :show, work))
       {:error, changeset} ->
         render(conn, "edit.html", work: work, changeset: changeset)
     end
@@ -301,7 +290,7 @@ defmodule TimeKeeper.WorkController do
       {:ok, _work} ->
         conn
         |> put_flash(:info, "Work created successfully.")
-        |> Phoenix.Controller.redirect(to: work_path(conn, :index))
+        |> redirect(to: work_path(conn, :index))
       {:error, changeset} ->
         render(conn, "new.html", changeset: changeset)
     end
@@ -321,6 +310,6 @@ defmodule TimeKeeper.WorkController do
 
     conn
     |> put_flash(:info, "Work deleted successfully.")
-    |> Phoenix.Controller.redirect(to: work_path(conn, :index))
+    |> redirect(to: work_path(conn, :index))
   end
 end

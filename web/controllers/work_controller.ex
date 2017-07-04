@@ -96,7 +96,7 @@ defmodule TimeKeeper.WorkController do
 
   def job_work(conn, %{"start_date" => start_date, "end_date" => end_date, "download" => download}) do
     {_, start_dt, _} = DateTime.from_iso8601("#{start_date}T00:00:00Z")
-    {_, end_dt, _} = DateTime.from_iso8601("#{end_date}T00:00:00Z")
+    {_, end_dt, _} = DateTime.from_iso8601("#{end_date}T23:59:59Z")
 
     all_work = Repo.all(from w in Work,
       join: j in Job,

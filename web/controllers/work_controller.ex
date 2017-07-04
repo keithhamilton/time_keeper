@@ -103,7 +103,7 @@ defmodule TimeKeeper.WorkController do
 
     conn
     |> put_status(:ok)
-    |> put_resp_content_type("application/octet-stream")
+    |> put_resp_content_type("text/csv")
     |> send_file(200, response_text)
   end
 

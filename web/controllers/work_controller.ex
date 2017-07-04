@@ -6,31 +6,38 @@ defmodule TimeKeeper.WorkController do
   alias TimeKeeper.User
   alias TimeKeeper.Work
 
-  # def aggregate_time([first_entry|time_entries], aggregate) do
-  #   date_string = Date.to_string(first_entry.date)
-  #
-  #   if Map.has_key?(aggregate, date_string) do
-  #     date_hash = Map.get(aggregate, date_string)
-  #
-  #     if Map.has_key?(date_hash, first_entry.job_code) do
-  #       total_time = Map.get(date_hash, first_entry.job_code) + first_entry.time_spent
-  #       new_date_hash = Map.put(date_hash, first_entry.job_code, total_time)
-  #       new_aggregate = Map.put(aggregate, date_string, new_date_hash)
-  #       aggregate_time(time_entries, new_aggregate)
-  #     else
-  #       new_date_hash = Map.put(date_hash, first_entry.job_code, first_entry.time_spent)
-  #       new_aggregate = Map.put(aggregate, date_string, new_date_hash)
-  #       aggregate_time(time_entries, new_aggregate)
-  #     end
-  #   else
-  #     date_hash = %{first_entry.job_code => first_entry.time_spent}
-  #     new_aggregate = Map.put(aggregate, date_string, date_hash)
-  #     aggregate_time(time_entries, new_aggregate)
-  #   end
-  # end
+  def aggregate_time_by_date([first_entry|time_entries], aggregate) do
+    date_string = Date.to_string(first_entry.date)
 
-  def aggregate_time([first_entry|time_entries], aggregate) do
-    IO.puts "#{length(time_entries)} jobs remain"
+    if Map.has_key?(aggregate, date_string) do
+      date_hash = Map.get(aggregate, date_string)
+
+      if Map.has_key?(date_hash, first_entry.job_code) do
+        total_time = Map.get(date_hash, first_entry.job_code) + first_entry.time_spent
+        new_date_hash = Map.put(date_hash, first_entry.job_code, total_time)
+        new_aggregate = Map.put(aggregate, date_string, new_date_hash)
+        aggregate_time_by_date(time_entries, new_aggregate)
+      else
+        new_date_hash = Map.put(date_hash, first_entry.job_code, first_entry.time_spent)
+        new_aggregate = Map.put(aggregate, date_string, new_date_hash)
+        aggregate_time_by_date(time_entries, new_aggregate)
+      end
+    else
+      date_hash = %{first_entry.job_code => first_entry.time_spent}
+      new_aggregate = Map.put(aggregate, date_string, date_hash)
+      aggregate_time_by_date(time_entries, new_aggregate)
+    end
+  end
+
+  def aggregate_time_by_date([], aggregate) do
+    aggregate
+  end
+
+  def aggregate_time_by_date([first_entry|time_entries]) do
+    aggregate_time_by_date([first_entry|time_entries], %{})
+  end
+
+  def aggregate_time_by_job([first_entry|time_entries], aggregate) do
     job_code = first_entry.job_code
     job_date = first_entry.date
     job_hash = Map.get(aggregate, job_code)
@@ -39,28 +46,28 @@ defmodule TimeKeeper.WorkController do
     case job_hash do
       nil ->
         new_job_hash = %{first_entry.date => first_entry.time_spent}
-        aggregate_time(time_entries, Map.put(aggregate, job_code, new_job_hash))
+        aggregate_time_by_job(time_entries, Map.put(aggregate, job_code, new_job_hash))
       _ ->
         date_hash = Map.get(job_hash, job_date)
 
         case date_hash do
           nil ->
             new_job_hash = Map.put(job_hash, job_date, job_time)
-            aggregate_time(time_entries, Map.put(aggregate, job_code, new_job_hash))
+            aggregate_time_by_job(time_entries, Map.put(aggregate, job_code, new_job_hash))
           _ ->
             total_time = Map.get(job_hash, job_date) + job_time
             new_job_hash = Map.put(job_hash, job_date, total_time)
-            aggregate_time(time_entries, Map.put(aggregate, job_code, new_job_hash))
+            aggregate_time_by_job(time_entries, Map.put(aggregate, job_code, new_job_hash))
         end
     end
   end
 
-  def aggregate_time([], aggregate) do
+  def aggregate_time_by_job([], aggregate) do
     aggregate
   end
 
-  def aggregate_time([first_entry|time_entries]) do
-    aggregate_time([first_entry|time_entries], %{})
+  def aggregate_time_by_job([first_entry|time_entries]) do
+    aggregate_time_by_job([first_entry|time_entries], %{})
   end
 
   def calc_time_spent(work_object) do
@@ -85,7 +92,7 @@ defmodule TimeKeeper.WorkController do
     end
   end
 
-  def job_work(conn, %{"start_date" => start_date, "end_date" => end_date}) do
+  def job_work(conn, %{"start_date" => start_date, "end_date" => end_date, "download" => download}) do
     {_, start_dt, _} = DateTime.from_iso8601("#{start_date}T00:00:00Z")
     {_, end_dt, _} = DateTime.from_iso8601("#{end_date}T00:00:00Z")
 
@@ -96,15 +103,31 @@ defmodule TimeKeeper.WorkController do
 
     IO.puts "Found #{length(all_work)} jobs!"
 
-    response_text = Enum.map(all_work, fn w -> calc_time_spent(w) end)
-      |> aggregate_time
-      |> round_job_time
-      |> write_csv
+    case download do
+      nil ->
+        {_, response_text} = Enum.map(all_work, fn w -> calc_time_spent(w) end)
+        |> aggregate_time_by_date
+        |> round_job_time
+        |> Poison.encode
 
-    conn
-    |> put_status(:ok)
-    |> put_resp_content_type("text/csv")
-    |> send_file(200, response_text)
+        conn
+        |> put_status(:ok)
+        |> send_resp(200, response_text)
+
+      _ ->
+        response_text = Enum.map(all_work, fn w -> calc_time_spent(w) end)
+        |> aggregate_time_by_job
+        |> round_job_time
+        |> write_csv
+
+        conn
+        |> put_status(:ok)
+        |> put_resp_content_type("text/csv")
+        |> send_file(200, response_text)
+
+        File.rm(response_text)
+    end
+
   end
 
   def open(conn, button_pin) do

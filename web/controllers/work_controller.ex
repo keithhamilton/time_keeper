@@ -92,6 +92,10 @@ defmodule TimeKeeper.WorkController do
     end
   end
 
+  def job_work(conn, %{"start_date" => start_date, "end_date" => end_date}) do
+    job_work(conn, %{"start_date" => start_date, "end_date" => end_date, "download" => false})
+  end
+
   def job_work(conn, %{"start_date" => start_date, "end_date" => end_date, "download" => download}) do
     {_, start_dt, _} = DateTime.from_iso8601("#{start_date}T00:00:00Z")
     {_, end_dt, _} = DateTime.from_iso8601("#{end_date}T00:00:00Z")
@@ -104,7 +108,7 @@ defmodule TimeKeeper.WorkController do
     IO.puts "Found #{length(all_work)} jobs!"
 
     case download do
-      nil ->
+      false ->
         {_, response_text} = Enum.map(all_work, fn w -> calc_time_spent(w) end)
         |> aggregate_time_by_date
         |> round_job_time

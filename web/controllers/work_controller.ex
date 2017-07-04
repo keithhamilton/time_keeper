@@ -100,7 +100,6 @@ defmodule TimeKeeper.WorkController do
       |> aggregate_time
       |> round_job_time
       |> write_csv
-      |> Poison.encode
 
     conn
     |> put_status(:ok)

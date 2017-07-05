@@ -1,0 +1,26 @@
+
+
+
+<h2>Currently working on: <%= @current_job.job_code %></h2>
+
+<h3>Select a date range to view work hours:</h3>
+<h4>Begin Date</h4>
+<input type="date" id="begin-date"/>
+<h4>End Date</h4>
+<input type="date" id="end-date"/>
+
+<br/>
+<br/>
+<button id="submit">Submit</button>
+
+<script type="text/javascript">
+
+  var submitButton = document.getElementById('submit');
+  submitButton.addEventListener('click', function(e) {
+    var beginDate = document.getElementById('begin-date').value;
+    var endDate = document.getElementById('end-date').value;
+
+    window.location = '/work/' + beginDate + '/' + endDate + '/browser'
+  })
+
+</script>

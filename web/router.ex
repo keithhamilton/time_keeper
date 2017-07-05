@@ -20,6 +20,7 @@ defmodule TimeKeeper.Router do
     get "/signin/:token", SessionController, :show, as: :signin
     get "/work/switch", WorkController, :switch_manual
     post "/work/switch", WorkController, :switch
+    get "/work", WorkController, :dashboard
     get "/work/:start_date/:end_date", WorkController, :job_work
     get "/work/:start_date/:end_date/:download", WorkController, :job_work
 

@@ -159,13 +159,13 @@ defmodule TimeKeeper.WorkController do
   end
 
   def switch(conn, %{"button_pin" => button_pin, "serial" => serial}) do
+    current_user = Addict.Helper.current_user(conn)
+
     IO.puts "Received signal from button #{button_pin}!"
     incomplete_work = Repo.all(from w in Work,
     join: j in Job,
-    join: u in User,
     where: j.id == w.job_id,
-    where: j.user_id == u.id,
-    where: u.board == ^serial,
+    where: j.user_id == ^current_user.id,
     where: not w.complete)
 
     if length(incomplete_work) > 0 do

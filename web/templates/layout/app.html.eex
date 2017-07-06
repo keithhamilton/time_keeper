@@ -16,7 +16,7 @@
     <div class="container">
       <div class="jumbotron nav">
         <div class="container" style="text-align: left;">
-          <a href="/login">Login/Register</a> |
+          <a href="/login">Login</a> |
           <a href="/jobs">Manage Jobs</a> |
           <a href="/buttons">Manage Board</a>
         </div>

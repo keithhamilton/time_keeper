@@ -57,7 +57,7 @@ defmodule TimeKeeper.WorkController do
         conn
         |> redirect(to: "/register")
       _ ->
-        {start_date, end_date} = TimeServices.current_pay_period
+        [start_date|end_date] = TimeServices.current_pay_period
         total_time = Repo.all(from w in Work,
           join: j in Job,
           where: j.job_code != "AFK",

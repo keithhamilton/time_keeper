@@ -1,6 +1,8 @@
 defmodule TimeKeeper.Router do
   use TimeKeeper.Web, :router
 
+  use Addict.RoutesHelper
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -13,14 +15,18 @@ defmodule TimeKeeper.Router do
     plug :accepts, ["json"]
   end
 
+  scope "/" do
+    addict :routes
+  end
+
   scope "/", TimeKeeper do
     pipe_through :browser # Use the default browser stack
 
-    get "/", SessionController, :new
-    get "/signin/:token", SessionController, :show, as: :signin
+    get "/", WorkController, :dashboard
+    get "/work", WorkController, :job_work
     get "/work/switch", WorkController, :switch_manual
     post "/work/switch", WorkController, :switch
-    get "/work", WorkController, :dashboard
+    get "/work/dashboard", WorkController, :dashboard
     get "/work/:start_date/:end_date", WorkController, :job_work
     get "/work/:start_date/:end_date/:download", WorkController, :job_work
 

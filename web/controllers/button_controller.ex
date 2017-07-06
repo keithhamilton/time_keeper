@@ -1,14 +1,15 @@
 defmodule TimeKeeper.ButtonController do
   use TimeKeeper.Web, :controller
 
-  alias TimeKeeper.Button
-  alias TimeKeeper.Job
+  alias TimeKeeper.{Button, Job, User}
 
   def index(conn, _params) do
-    records = Repo.all(from j in Job,
+    records = Repo.all(from u in User,
+      join: j in Job,
       join: b in Button,
-      on: b.job_id == j.id,
-      select: %{id: b.id, serial_id: b.serial_id, job: j, job_code: j.job_code})
+      where: b.user_id == u.id,
+      where: j.id == b.job_id,
+      select: %{id: b.id, serial_id: b.serial_id, job_name: j.job_name, job_code: j.job_code})
     |> Enum.map(fn r -> struct(Button, r) end)
 
     render(conn, "index.html", buttons: records)
@@ -21,11 +22,12 @@ defmodule TimeKeeper.ButtonController do
   end
 
   def create(conn, %{"button" => button_params}) do
+    current_user = Addict.Helper.current_user(conn)
     {id, _} = button_params["jobcodes"]
       |> Integer.parse
     job = Repo.get!(Job, id)
 
-    changeset = Button.changeset(%Button{job: job}, button_params)
+    changeset = Button.changeset(%Button{job_id: job.id, user: current_user}, button_params)
 
     case Repo.insert(changeset) do
       {:ok, _button} ->
@@ -39,7 +41,8 @@ defmodule TimeKeeper.ButtonController do
 
   def show(conn, %{"id" => id}) do
     button = Repo.get!(Button, id)
-    job = Repo.get!(Job, button.job_id)
+    IO.inspect button
+    job = Repo.get_by(Job, id: button.job_id)
 
     render(conn, "show.html", button: button, job_name: job.job_name)
   end
@@ -54,8 +57,7 @@ defmodule TimeKeeper.ButtonController do
   def update(conn, %{"id" => id, "button" => button_params}) do
     button = Repo.get!(Button, id)
     job = Repo.get!(Job, button_params["jobcodes"])
-
-    change_params = %{"job": job.id, "serial_id": button_params["serial_id"]}
+    change_params = %{"job_id": job.id, "serial_id": button_params["serial_id"]}
     changeset = Button.changeset(button, change_params)
 
     case Repo.update(changeset) do

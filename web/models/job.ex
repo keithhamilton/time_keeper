@@ -4,7 +4,6 @@ defmodule TimeKeeper.Job do
   schema "jobs" do
     field :job_name, :string
     field :job_code, :string
-    belongs_to :user, TimeKeeper.User, foreign_key: :user_id
 
     timestamps()
   end

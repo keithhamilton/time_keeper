@@ -1,9 +1,13 @@
 
 
 
-<h2>Currently working on: <%= @current_job.job_code %></h2>
+<div style="height: 100px;"></div>
 
-<h3>Select a date range to view work hours:</h3>
+<h4>Currently working on: <%= @current_job %></h4>
+<h4>Total hours this pay period: <%= @total_time %></h4>
+<%= link "Current Pay Period Hours", to: work_path(@conn, :job_work) %>
+
+<h3>Or, select a date range to view work hours:</h3>
 <h4>Begin Date</h4>
 <input type="date" id="begin-date"/>
 <h4>End Date</h4>
@@ -12,6 +16,7 @@
 <br/>
 <br/>
 <button id="submit">Submit</button>
+<input type="hidden" id="current_user" value="<%= @user_board %>">
 
 <script type="text/javascript">
 

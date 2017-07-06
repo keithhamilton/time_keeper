@@ -3,9 +3,9 @@ defmodule TimeKeeper.User do
 
   schema "users" do
     field :email, :string
-    field :board, :string
-    has_many :jobs, TimeKeeper.Job
-    has_many :auth_tokens, TimeKeeper.AuthToken
+    field :name, :string
+    field :encrypted_password, :string
+    has_many :buttons, TimeKeeper.Button
 
     timestamps()
   end
@@ -14,8 +14,10 @@ defmodule TimeKeeper.User do
   Builds a changeset based on the `struct` and `params`.
   """
   def changeset(struct, params \\ %{}) do
+    IO.inspect struct
+    IO.inspect params
     struct
-    |> cast(params, [:email])
+    |> cast(params, [:email, :board, :name])
     |> validate_required([:email])
   end
 end

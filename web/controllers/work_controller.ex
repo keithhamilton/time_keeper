@@ -1,84 +1,7 @@
 defmodule TimeKeeper.WorkController do
   use TimeKeeper.Web, :controller
 
-  alias TimeKeeper.Button
-  alias TimeKeeper.Job
-  alias TimeKeeper.User
-  alias TimeKeeper.Work
-
-  def aggregate_time_by_date([first_entry|time_entries], aggregate) do
-    job_code = first_entry.job_code
-    job_date = first_entry.date
-    job_time = first_entry.time_spent
-    date_hash = Map.get(aggregate, job_date)
-
-    case date_hash do
-      nil ->
-        new_date_hash = %{job_code => job_time}
-        aggregate_time_by_date(time_entries, Map.put(aggregate, job_date, new_date_hash))
-      _ ->
-        job_hash = Map.get(date_hash, job_code)
-
-        case job_hash do
-          nil ->
-            new_date_hash = Map.put(date_hash, job_code, job_time)
-            aggregate_time_by_date(time_entries, Map.put(aggregate, job_date, new_date_hash))
-          _ ->
-            total_time = Map.get(date_hash, job_code) + job_time
-            new_date_hash = Map.put(date_hash, job_code, total_time)
-            aggregate_time_by_date(time_entries, Map.put(aggregate, job_date, new_date_hash))
-        end
-    end
-  end
-
-  def aggregate_time_by_date([], aggregate) do
-    aggregate
-  end
-
-  def aggregate_time_by_date([first_entry|time_entries]) do
-    aggregate_time_by_date([first_entry|time_entries], %{})
-  end
-
-  def aggregate_time_by_job([first_entry|time_entries], aggregate) do
-    job_code = first_entry.job_code
-    job_date = first_entry.date
-    job_hash = Map.get(aggregate, job_code)
-    job_time = first_entry.time_spent
-
-    case job_hash do
-      nil ->
-        new_job_hash = %{first_entry.date => first_entry.time_spent}
-        aggregate_time_by_job(time_entries, Map.put(aggregate, job_code, new_job_hash))
-      _ ->
-        date_hash = Map.get(job_hash, job_date)
-
-        case date_hash do
-          nil ->
-            new_job_hash = Map.put(job_hash, job_date, job_time)
-            aggregate_time_by_job(time_entries, Map.put(aggregate, job_code, new_job_hash))
-          _ ->
-            total_time = Map.get(job_hash, job_date) + job_time
-            new_job_hash = Map.put(job_hash, job_date, total_time)
-            aggregate_time_by_job(time_entries, Map.put(aggregate, job_code, new_job_hash))
-        end
-    end
-  end
-
-  def aggregate_time_by_job([], aggregate) do
-    aggregate
-  end
-
-  def aggregate_time_by_job([first_entry|time_entries]) do
-    aggregate_time_by_job([first_entry|time_entries], %{})
-  end
-
-  def calc_time_spent(work_object) do
-    hours = NaiveDateTime.diff(work_object.updated_at, work_object.inserted_at) / 3600
-      |> Float.round(2)
-
-    calendar_date = NaiveDateTime.to_date(work_object.inserted_at)
-    %{job_code: work_object.job_code, date: Date.to_string(calendar_date), time_spent: hours}
-  end
+  alias TimeKeeper.{Button, Job, TimeServices, User, Work, WorkServices}
 
   def close(conn, work_object) do
     [current_job|_] = Repo.all(from j in Job, where: j.id == ^work_object.job_id)
@@ -94,17 +17,71 @@ defmodule TimeKeeper.WorkController do
     end
   end
 
+  def create(conn, %{"work" => work_params}) do
+    changeset = Work.changeset(%Work{}, work_params)
+
+    case Repo.insert(changeset) do
+      {:ok, _work} ->
+        conn
+        |> put_flash(:info, "Work created successfully.")
+        |> redirect(to: work_path(conn, :index))
+      {:error, changeset} ->
+        render(conn, "new.html", changeset: changeset)
+    end
+  end
+
   def dashboard(conn, %{}) do
-      [current_job|_] = Repo.all(from w in Work,
-      join: j in Job,
-      where: j.id == w.job_id,
-      where: not w.complete,
-      select: %{inserted_at: w.inserted_at, updated_at: w.updated_at, job_code: j.job_code})
+    current_user = Addict.Helper.current_user(conn)
+    case current_user do
+      nil ->
+        conn
+        |> redirect(to: "/register")
+      _ ->
+        [start_date, end_date] = TimeServices.current_pay_period
+        total_time = Repo.all(from w in Work,
+          join: j in Job,
+          where: j.job_code != "AFK",
+          where: j.id == w.job_id and w.inserted_at >= ^start_date and w.inserted_at <= ^end_date and w.complete,
+          select: {w.inserted_at, w.updated_at})
+        |> WorkServices.sum_time
 
-      conn
-      |> put_status(:ok)
-      |> render("dashboard.html", current_job: current_job |> calc_time_spent)
+        [current_job|_] = Repo.all(from w in Work,
+        join: j in Job,
+        where: j.id == w.job_id,
+        where: not w.complete,
+        select: j.job_name)
 
+        conn
+        |> put_status(:ok)
+        |> render("dashboard.html", total_time: total_time,
+          user_board: current_user.name,
+          current_job: current_job)
+    end
+  end
+
+  def delete(conn, %{"id" => id}) do
+    work = Repo.get!(Work, id)
+
+    # Here we use delete! (with a bang) because we expect
+    # it to always work (and if it does not, it will raise).
+    Repo.delete!(work)
+
+    conn
+    |> put_flash(:info, "Work deleted successfully.")
+    |> redirect(to: work_path(conn, :index))
+  end
+
+  def edit(conn, %{"id" => id}) do
+    [work|_] = Repo.all(from w in Work,
+      where: w.id == ^id,
+      select: w)
+    changeset = Work.changeset(work)
+    render(conn, "edit.html", work: work, changeset: changeset)
+  end
+
+  def index(conn, _params) do
+    work = Repo.all(Work)
+    render(conn, "index.html", work: work)
   end
 
   def job_work(conn, %{"start_date" => start_date, "end_date" => end_date, "download" => download}) do
@@ -120,31 +97,42 @@ defmodule TimeKeeper.WorkController do
 
     case download do
       "browser" ->
-        time_records = Enum.map(all_work, fn w -> calc_time_spent(w) end)
-        |> aggregate_time_by_date
-        |> round_job_time
+        download_link = "/work/#{start_date}/#{end_date}/time_report"
+        time_records = Enum.map(all_work, fn w -> WorkServices.calc_time_spent(w) end)
+        |> WorkServices.aggregate_time("date")
+        |> WorkServices.round_job_time
         |> Map.to_list
         |> Enum.map(fn t -> %{date: elem(t, 0), values: elem(t, 1) |> Map.to_list} end)
-#        |> Poison.encode!
-
-        download_link = "/work/#{start_date}/#{end_date}/time_report"
 
         conn
         |> put_status(:ok)
         |> render("work_report.html", records: time_records, download_link: download_link)
-#        |> send_resp(200, response_text)
 
       _ ->
-        response_text = Enum.map(all_work, fn w -> calc_time_spent(w) end)
-        |> aggregate_time_by_job
-        |> round_job_time
-        |> write_csv
+        response_text = Enum.map(all_work, fn w -> WorkServices.calc_time_spent(w) end)
+        |> WorkServices.aggregate_time("job")
+        |> WorkServices.round_job_time
+        |> WorkServices.write_csv
 
         conn
         |> put_status(:ok)
         |> put_resp_content_type("text/csv")
         |> send_file(200, response_text)
     end
+  end
+
+  def job_work(conn, %{}) do
+    [start_date, end_date] = TimeServices.current_pay_period
+    |> Enum.map(fn d -> DateTime.to_date(d) |> Date.to_string end)
+    IO.puts start_date
+    IO.puts end_date
+    conn
+    |> redirect(to: "/work/#{start_date}/#{end_date}/browser")
+  end
+
+  def new(conn, _params) do
+    changeset = Work.changeset(%Work{})
+    render(conn, "new.html", changeset: changeset)
   end
 
   def open(conn, button_pin) do
@@ -165,43 +153,9 @@ defmodule TimeKeeper.WorkController do
     end
   end
 
-  def round_hours(hours) do
-
-    {whole_hour, hour_fraction} = {hours |> Float.floor,
-                                  (hours - Float.floor(hours)) * 60 |> Float.floor}
-    cond do
-      hour_fraction <= 15 ->
-        whole_hour + 0.25
-      hour_fraction > 15 and hour_fraction <= 30 ->
-        whole_hour + 0.5
-      hour_fraction > 30 and hour_fraction <= 45 ->
-        whole_hour + 0.75
-      hour_fraction > 45 ->
-        whole_hour + 1.0
-    end
-  end
-
-  def round_job_time(aggregate, keys, rounded_aggregate) do
-    if length(keys) == 0 do
-      round_job_time(:finish, rounded_aggregate)
-    else
-      [first|rest] = keys
-      day_hours = Map.get(aggregate, first)
-      |> Map.to_list
-      |> Enum.map(fn t -> {elem(t, 0), TimeKeeper.WorkController.round_hours(elem(t, 1))} end)
-      |> Enum.into(%{})
-
-      new_aggregate = Map.put(rounded_aggregate, first, day_hours)
-      round_job_time(Map.drop(aggregate, [first]), rest, new_aggregate)
-    end
-  end
-
-  def round_job_time(_, rounded_aggregate) do
-    rounded_aggregate
-  end
-
-  def round_job_time(aggregate) do
-    round_job_time(aggregate, Map.keys(aggregate), %{})
+  def show(conn, %{"id" => id}) do
+    work = Repo.get!(Work, id)
+    render(conn, "show.html", work: work)
   end
 
   def switch(conn, %{"button_pin" => button_pin, "serial" => serial}) do
@@ -235,27 +189,18 @@ defmodule TimeKeeper.WorkController do
   end
 
   def switch_manual(conn, _params) do
+    current_user = Addict.Helper.current_user(conn)
     buttons = Repo.all(from b in Button,
+      join: u in User,
       join: j in Job,
+      where: u.id == ^current_user.id,
       where: b.job_id == j.id,
-      select: %{serial_id: b.serial_id, job: b.job_id, job_code: j.job_code})
+      select: %{serial_id: b.serial_id, job_code: j.job_code},
+      order_by: b.id)
 
     |> Enum.map(fn r -> struct(Button, r) end)
 
     render(conn, "switch.html", buttons: buttons)
-  end
-
-  def index(conn, _params) do
-    work = Repo.all(Work)
-    render(conn, "index.html", work: work)
-  end
-
-  def edit(conn, %{"id" => id}) do
-    [work|_] = Repo.all(from w in Work,
-      where: w.id == ^id,
-      select: w)
-    changeset = Work.changeset(work)
-    render(conn, "edit.html", work: work, changeset: changeset)
   end
 
   def update(conn, %{"id" => id, "work" => work_params}) do
@@ -272,63 +217,4 @@ defmodule TimeKeeper.WorkController do
     end
   end
 
-  defp get_job_times(job_code, time_data, dates) do
-    job_hash = Map.get(time_data, job_code)
-    date_times = Enum.map(dates, fn d -> Map.get(job_hash, d) end) |> Enum.join(",")
-    "#{job_code},#{date_times}\n"
-  end
-
-  def write_csv(time_data) do
-    date_columns = Map.values(time_data)
-      |> Enum.map(fn i -> Map.keys(i) end)
-      |> Enum.reduce(fn x, y -> Enum.concat(x, y) end)
-      |> Enum.uniq
-      |> Enum.sort
-    {:ok, file} = File.open "/tmp/time.csv", [:write]
-
-    IO.binwrite(file, "#{Enum.concat(["job_code"], date_columns) |> Enum.join(",")}\n")
-
-    Map.keys(time_data)
-    |> Enum.filter(fn e -> e != "AFK" end)
-    |> Enum.map(fn t -> get_job_times(t, time_data, date_columns) end)
-    |> Enum.map(fn jt -> IO.binwrite(file, jt) end)
-
-    File.close(file)
-    "/tmp/time.csv"
-  end
-
-  def new(conn, _params) do
-    changeset = Work.changeset(%Work{})
-    render(conn, "new.html", changeset: changeset)
-  end
-
-  def create(conn, %{"work" => work_params}) do
-    changeset = Work.changeset(%Work{}, work_params)
-
-    case Repo.insert(changeset) do
-      {:ok, _work} ->
-        conn
-        |> put_flash(:info, "Work created successfully.")
-        |> redirect(to: work_path(conn, :index))
-      {:error, changeset} ->
-        render(conn, "new.html", changeset: changeset)
-    end
-  end
-
-  def show(conn, %{"id" => id}) do
-    work = Repo.get!(Work, id)
-    render(conn, "show.html", work: work)
-  end
-
-  def delete(conn, %{"id" => id}) do
-    work = Repo.get!(Work, id)
-
-    # Here we use delete! (with a bang) because we expect
-    # it to always work (and if it does not, it will raise).
-    Repo.delete!(work)
-
-    conn
-    |> put_flash(:info, "Work deleted successfully.")
-    |> redirect(to: work_path(conn, :index))
-  end
 end

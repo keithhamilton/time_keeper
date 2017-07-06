@@ -1,0 +1,9 @@
+<h1 style="text-align: center">We need board's serial number!</h1>
+
+<%= form_for @changeset, user_path(@conn, :update, @user_id), fn f -> %>
+  <label>
+    Board Serial: <%= text_input f, :board %>
+  </label>
+
+  <%= submit "Submit" %>
+<% end %>

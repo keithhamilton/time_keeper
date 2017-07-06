@@ -13,7 +13,7 @@
 <%= for button <- @buttons do %>
     <tr>
       <td><%= button.serial_id %></td>
-      <td><%= button.job.job_name %></td>
+      <td><%= button.job_name %></td>
 
       <td class="text-right">
         <%= link "Show", to: button_path(@conn, :show, button), class: "btn btn-default btn-xs" %>

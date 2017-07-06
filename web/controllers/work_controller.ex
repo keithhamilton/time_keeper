@@ -139,13 +139,13 @@ defmodule TimeKeeper.WorkController do
     render(conn, "new.html", changeset: changeset)
   end
 
-  def open(conn, button_pin) do
+  def open(conn, button_pin, user_id) do
     [button|_] = Repo.all(from b in Button,
       where: b.serial_id == ^button_pin,
       select: b)
 
     job = Repo.get!(Job, button.job_id)
-    work = Work.changeset(%Work{job: job}, %{})
+    work = Work.changeset(%Work{job: job, user_id: user_id}, %{})
 
     case Repo.insert(work) do
       {:ok, _} ->
@@ -164,22 +164,17 @@ defmodule TimeKeeper.WorkController do
 
   def switch(conn, %{"button_pin" => button_pin, "serial" => serial_board}) do
     IO.puts "Received signal from button #{button_pin}!"
+    user = Repo.one(User, name: serial_board)
+
     incomplete_work = Repo.all(from w in Work,
-    join: b in Button,
-    join: j in Job,
-    join: u in User,
-    where: u.name == ^serial_board,
-    where: b.serial_id == ^button_pin,
-    where: b.user_id == u.id,
-    where: w.id == b.job_id,
-    where: not w.complete)
+    where: not w.complete and w.user_id == ^user.id)
 
     if length(incomplete_work) > 0 do
       [work_object|_] = incomplete_work
       TimeKeeper.WorkController.close(conn, work_object)
     end
 
-    TimeKeeper.WorkController.open(conn, button_pin)
+    TimeKeeper.WorkController.open(conn, button_pin, user.id)
 
     job_code = Repo.all(from b in Button,
     join: j in Job,

@@ -1,7 +1,5 @@
 defmodule TimeKeeper.WorkController do
-  @@moduledoc """
-  WRITE SOMETHING
-  """
+
   use TimeKeeper.Web, :controller
 
   alias TimeKeeper.{Button, Job, TimeServices, User, Work, WorkServices}

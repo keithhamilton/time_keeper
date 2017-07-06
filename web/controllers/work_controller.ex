@@ -158,7 +158,7 @@ defmodule TimeKeeper.WorkController do
     render(conn, "show.html", work: work)
   end
 
-  def switch(conn, %{"button_pin" => button_pin, "serial" => serial}) do
+  def switch(conn, %{"button_pin" => button_pin}) do
     current_user = Addict.Helper.current_user(conn)
 
     IO.puts "Received signal from button #{button_pin}!"

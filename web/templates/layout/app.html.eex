@@ -12,14 +12,11 @@
   </head>
 
   <body>
-
-      <!-- <h2><%= gettext "Welcome to %{name}", name: "Phoenix!" %></h2>
-      <p class="lead">A productive web framework that<br />does not compromise speed and maintainability.</p> -->
     </div>
     <div class="container">
       <div class="jumbotron nav">
         <div class="container" style="text-align: left;">
-          <a href="/login">Login</a> |
+          <a href="/login">Login/Register</a> |
           <a href="/jobs">Manage Jobs</a> |
           <a href="/buttons">Manage Board</a>
         </div>

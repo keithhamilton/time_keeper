@@ -24,7 +24,6 @@ defmodule TimeKeeper.Router do
 
     get "/", WorkController, :dashboard
     get "/work", WorkController, :job_work
-    get "/work/switch", WorkController, :switch_manual
     post "/work/switch", WorkController, :switch
     get "/work/dashboard", WorkController, :dashboard
     get "/work/:start_date/:end_date", WorkController, :job_work

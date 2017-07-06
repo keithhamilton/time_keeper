@@ -12,7 +12,6 @@ defmodule TimeKeeper.WorkController do
   @spec job_work(Plug.Conn.t, Map.t) :: Plug.Conn.t
   @spec open(Plug.Conn.t, String.t, String.t) :: Plug.Conn.t
   @spec switch(Plug.Conn.t, Map.t) :: Plug.Conn.t
-  @spec switch_manual(Plug.Conn.t, List.t) :: Plug.Conn.t
 
   @doc """
   """
@@ -260,24 +259,6 @@ defmodule TimeKeeper.WorkController do
     conn
     |> put_status(:ok)
     |> send_resp(200, resp)
-  end
-
-  @doc """
-  Renders a view where the job can be switched for on-the-go job updating.
-  """
-  def switch_manual(conn, _params) do
-    current_user = Addict.Helper.current_user(conn)
-    buttons = Repo.all(from b in Button,
-      join: u in User,
-      join: j in Job,
-      where: u.id == ^current_user.id,
-      where: b.job_id == j.id,
-      select: %{serial_id: b.serial_id, job_code: j.job_code},
-      order_by: b.id)
-
-    |> Enum.map(fn r -> struct(Button, r) end)
-
-    render(conn, "switch.html", buttons: buttons, user: current_user)
   end
 
   @doc """

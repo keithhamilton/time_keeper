@@ -164,7 +164,9 @@ defmodule TimeKeeper.WorkController do
 
   def switch(conn, %{"button_pin" => button_pin, "serial" => serial_board}) do
     IO.puts "Received signal from button #{button_pin}!"
-    user = Repo.one(User, name: serial_board)
+    [user|_] = Repo.all(from u in User,
+    where: name == ^serial_board,
+    select: u)
 
     incomplete_work = Repo.all(from w in Work,
     where: not w.complete and w.user_id == ^user.id)

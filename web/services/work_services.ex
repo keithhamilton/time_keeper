@@ -1,18 +1,19 @@
 defmodule TimeKeeper.WorkServices do
 
-  def aggregate_time([first_entry|time_entries], aggregate, key_by) do
-
+  defp aggregate_keys(entry, key_by) do
     case key_by do
       "job" ->
-        primary_key = first_entry.job_code
-        secondary_key = first_entry.date
+        {entry.job_code, entry.date}
       "date" ->
-        primary_key = first_entry.date
-        secondary_key = first_entry.job_code
+        {entry.date, entry.job_code}
       _ ->
         {:error, "Unsupported key_by type--use \"job\" or \"date\"."}
     end
+  end
 
+  def aggregate_time([first_entry|time_entries], aggregate, key_by) do
+
+    {primary_key, secondary_key} = aggregate_keys(first_entry, key_by)
     job_time = first_entry.time_spent
     primary_hash = Map.get(aggregate, primary_key)
 

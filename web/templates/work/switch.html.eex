@@ -1,13 +1,13 @@
 <%= for button <- @buttons do %>
   <button class="serial-button push push--flat" id="<%=button.serial_id%>"><%=button.job_code%></button>
 <% end %>
-
+<input type="hidden" value="<%= @user.name %>" id='user-name'/>
 <script type="text/javascript">
 
   function switch_work(serial_id) {
     var http = new XMLHttpRequest();
     var url = "https://aqueous-garden-74263.herokuapp.com/work/switch";
-    var params = "button_pin=" + serial_id;
+    var params = "button_pin=" + serial_id + "&serial=<%= @user.name %>";
 
     http.open("POST", url, true);
 

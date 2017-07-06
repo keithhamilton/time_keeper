@@ -1,7 +1,7 @@
 defmodule TimeKeeper.UserController do
   use TimeKeeper.Web, :controller
 
-  alias TimeKeeper.{TokenAuthentication, User, Work}
+  alias TimeKeeper.User
 
   def index(conn, _params) do
     users = Repo.all(User)

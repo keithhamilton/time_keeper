@@ -1,9 +1,12 @@
 defmodule TimeKeeper.WorkController do
-
+  @moduledoc """
+  """
   use TimeKeeper.Web, :controller
 
   alias TimeKeeper.{Button, Job, TimeServices, User, Work, WorkServices}
 
+  @doc """
+  """
   def close(conn, work_object) do
     [current_job|_] = Repo.all(from j in Job, where: j.id == ^work_object.job_id)
     changeset = Work.changeset(work_object, %{job: current_job, complete: true})
@@ -159,15 +162,15 @@ defmodule TimeKeeper.WorkController do
     render(conn, "show.html", work: work)
   end
 
-  def switch(conn, %{"button_pin" => button_pin}) do
-    current_user = Addict.Helper.current_user(conn)
-
+  def switch(conn, %{"button_pin" => button_pin, "serial" => serial_board}) do
     IO.puts "Received signal from button #{button_pin}!"
     incomplete_work = Repo.all(from w in Work,
     join: b in Button,
     join: j in Job,
+    join: u in User,
+    where: u.name == ^serial_board,
     where: b.serial_id == ^button_pin,
-    where: b.user_id == ^current_user.id,
+    where: b.user_id == u.id,
     where: w.id == b.job_id,
     where: not w.complete)
 
@@ -203,7 +206,7 @@ defmodule TimeKeeper.WorkController do
 
     |> Enum.map(fn r -> struct(Button, r) end)
 
-    render(conn, "switch.html", buttons: buttons)
+    render(conn, "switch.html", buttons: buttons, user: current_user)
   end
 
   def update(conn, %{"id" => id, "work" => work_params}) do

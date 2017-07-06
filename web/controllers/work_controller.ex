@@ -71,9 +71,18 @@ defmodule TimeKeeper.WorkController do
         where: not w.complete,
         select: j.job_name)
 
+        buttons = Repo.all(from b in Button,
+        join: j in Job,
+        where: b.job_id == j.id,
+        where: b.user_id == ^current_user.id,
+        select: %{serial_id: b.serial_id, job_code: j.job_code},
+        order_by: b.id)
+
         conn
         |> put_status(:ok)
-        |> render("dashboard.html", total_time: total_time,
+        |> render("dashboard.html",
+          buttons: buttons,
+          total_time: total_time,
           user_board: current_user.name,
           current_job: current_job)
     end

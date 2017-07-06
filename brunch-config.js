@@ -24,7 +24,8 @@ exports.config = {
       order: {
         after: [
           "web/static/css/button.css",
-          "web/static/css/app.css"
+          "web/static/css/app.css",
+          "web/static/css/phoenix.css"
         ] // concat app.css last
       }
     },

@@ -10,7 +10,6 @@
 
 /* Space out content a bit */
 body, form, ul, table {
-  margin-top: 20px;
   margin-bottom: 20px;
 }
 
@@ -56,6 +55,12 @@ form.link, form.button {
 .jumbotron {
   text-align: center;
   border-bottom: 1px solid #e5e5e5;
+}
+
+.jumbotron.nav {
+  padding: 10px 10px 10px 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 
 /* Supporting marketing content */

@@ -29,23 +29,24 @@ img {
   height: 1px;
   width: 45%;
   background-color: white;
-  margin: 30px 0 15px 0;
+  margin: 10px 0 15px 0;
 }
 
 .time-record-date {
   font-size: 1em;
   font-weight: bolder;
   background-color: black;
+  color: #DADADA;
   width: 45%;
   padding-left: 1%;
+  margin-bottom: 10px;
 }
 
 .time-record-details {
-  height: .75em;
+  padding-left: 8px;
 }
-
 .time-record-client {
-  font-size: .4em; font-weight: bold;
+  font-size: 1em; font-weight: bold;
 }
 
 .time-record-client::after {
@@ -53,13 +54,13 @@ img {
 }
 
 .time-record-hours {
-  font-size: .4em;
+  font-size: 1em;
 }
 
 .time-record-total {
-  font-size: .4em;
+  font-size: 1em;
+  margin: 0 0 30px 8px;
 }
-
 
 /* Container */
 .addict.container {

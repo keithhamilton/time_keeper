@@ -1,13 +1,17 @@
+<input type="hidden" value="<%= @user_board %>" id='user-name'/>
 
+<%= for button <- @buttons do %>
+  <button class="serial-button push push--flat" id="<%=button.serial_id%>"><%=button.job_code%></button>
+<% end %>
 
-
-<div style="height: 100px;"></div>
+<hr/>
 
 <h4>Currently working on: <%= @current_job %></h4>
 <h4>Total hours this pay period: <%= @total_time %></h4>
+<br/>
 <%= link "Current Pay Period Hours", to: work_path(@conn, :job_work) %>
-
-<h3>Or, select a date range to view work hours:</h3>
+<br/><br/>
+<h4>Or, select a date range to view work hours:</h4>
 <h4>Begin Date</h4>
 <input type="date" id="begin-date"/>
 <h4>End Date</h4>
@@ -27,5 +31,55 @@
 
     window.location = '/work/' + beginDate + '/' + endDate + '/browser'
   })
+
+  function switch_work(serial_id) {
+    var http = new XMLHttpRequest();
+    var url = "https://aqueous-garden-74263.herokuapp.com/work/switch";
+    var params = "button_pin=" + serial_id + "&serial=<%= @user_board %>";
+
+    http.open("POST", url, true);
+
+    //Send the proper header information along with the request
+    http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+    http.onreadystatechange = function() {//Call a function when the state changes.
+      if(http.readyState == 4 && http.status == 200) {
+          window.alert('Now working on: ' + http.responseText);
+      }
+    }
+    http.send(params);
+  }
+
+  function playAudio(jobCode) {
+
+  	var URL = 'https://aqueous-garden-74263.herokuapp.com/audio/' + jobCode + '.mp3';
+
+  	var context = new AudioContext();
+
+  	window.fetch(URL).then(function (response) {
+  		return response.arrayBuffer();
+  	}).then(function (arrayBuffer) {
+  		return context.decodeAudioData(arrayBuffer);
+  	}).then(function (audioBuffer) {
+      return play(audioBuffer)
+  	});
+
+  	function play(audioBuffer) {
+  		var source = context.createBufferSource();
+  		source.buffer = audioBuffer;
+  		source.connect(context.destination);
+  		source.start();
+  	}
+  }
+
+  var buttons = document.querySelectorAll('.serial-button');
+  for(var i = 0; i < buttons.length; i++) {
+    var button = buttons[i];
+
+    button.addEventListener('click', function(e) {
+      var serial_id = e.target.id;
+      switch_work(serial_id);
+    })
+  }
 
 </script>

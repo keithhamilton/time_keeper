@@ -16,7 +16,7 @@ defmodule TimeKeeper.TimeServices do
     |> Timex.shift(days: 15 - date.day)
     |> Timex.set(hour: 23, minute: 59, second: 59)
 
-    {start_date, end_date}
+    [start_date, end_date]
   end
 
   defp second_half(date) do
@@ -30,7 +30,7 @@ defmodule TimeKeeper.TimeServices do
     |> Timex.shift(days: last_of_month - date.day)
     |> Timex.set(hour: 23, minute: 59, second: 59)
 
-    {start_date, end_date}
+    [start_date, end_date]
   end
 
 

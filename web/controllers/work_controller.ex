@@ -168,7 +168,7 @@ defmodule TimeKeeper.WorkController do
   period and redirects to the above job_work method.
   """
   def job_work(conn, %{}) do
-    {start_date, end_date} = TimeServices.current_pay_period
+    [start_date, end_date] = TimeServices.current_pay_period
     |> Enum.map(fn d -> DateTime.to_date(d) |> Date.to_string end)
     IO.puts start_date
     IO.puts end_date

@@ -1,4 +1,7 @@
 defmodule TimeKeeper.WorkController do
+  @@moduledoc """
+  WRITE SOMETHING
+  """
   use TimeKeeper.Web, :controller
 
   alias TimeKeeper.{Button, Job, TimeServices, User, Work, WorkServices}
@@ -163,9 +166,11 @@ defmodule TimeKeeper.WorkController do
 
     IO.puts "Received signal from button #{button_pin}!"
     incomplete_work = Repo.all(from w in Work,
+    join: b in Button,
     join: j in Job,
-    where: j.id == w.job_id,
-    where: j.user_id == ^current_user.id,
+    where: b.serial_id == ^button_pin,
+    where: b.user_id == ^current_user.id,
+    where: w.id == b.job_id,
     where: not w.complete)
 
     if length(incomplete_work) > 0 do
